@@ -15,12 +15,11 @@ import ThemeSwitch from './ThemeSwitch.astro'
 interface Props {
   title?: string
   description?: string
-  slug?: string
 }
 
-const { title = '', description = '', slug = '' } = Astro.props
+const { title = '', description = '' } = Astro.props
 
-const hasMeta = title !== '' && description !== '' && slug !== ''
+const hasMeta = title !== '' && description !== ''
 const pathName = Astro.url.pathname === '/' ? '/' : Astro.url.pathname.replace(/\/$/, '')
 
 const menuItems = menus.map((menu) => ({ ...menu, isActive: pathName === menu.link }))
@@ -146,10 +145,6 @@ const menuBgClasses =
             <div class="grow min-w-0">
               <div class="text-secondary text-xs truncate">{description}</div>
               <h2 class="truncate text-lg">{title}</h2>
-            </div>
-            <div class="hidden md:block min-w-0 text-right">
-              <div class="text-secondary text-xs truncate">{slug}</div>
-              <div>{site.title}</div>
             </div>
           </div>
         )
