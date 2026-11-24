@@ -1,50 +1,295 @@
 ---
 // 替代原 React 版 SearchButton + SearchPanel：原生 <dialog> + pagefind。
 // 行为与原版一致：Ctrl/Cmd+K 或点击搜索按钮打开，输入 350ms 防抖搜索，结果结构不变。
+// 外观按 Folio 设计语言重做：居中弹窗（移动端顶部展开）、主题变量配色、accent 高亮、
+// iconfont 图标、中文文案；结果列表自渲染（pagefind 低层 API），无 pagefind 品牌露出。
 ---
 
-<dialog
-  id="search-dialog"
-  class="bg-transparent border-none p-0 outline-none max-w-none max-h-none"
-  data-dev={import.meta.env.DEV}
->
-  <div
-    id="search-panel"
-    class="bg-primary rounded-lg w-[90vw] h-[80vh] max-w-[680px] max-h-[480px] border border-primary flex flex-col"
-  >
-    <input
-      id="search-input"
-      class="px-4 py-3 outline-none bg-transparent border-b border-primary"
-      type="text"
-      placeholder="Search..."
-      maxlength="64"
-    />
-    <div id="search-results" class="px-4 py-3 overflow-y-auto grow"></div>
-    <div class="px-3 py-2 flex justify-end">
-      <a
-        href="https://pagefind.app/"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="flex items-center"
-      >
-        <span class="mr-2 text-xs">Search by</span>
-        <span class="font-semibold">pagefind</span>
-      </a>
+<dialog id="search-dialog" data-dev={import.meta.env.DEV}>
+  <div id="search-panel">
+    <div class="search-head">
+      <i class="iconfont icon-search search-head-icon" aria-hidden="true"></i>
+      <input
+        id="search-input"
+        type="text"
+        placeholder="搜索文章…"
+        aria-label="搜索文章"
+        maxlength="64"
+        autocomplete="off"
+      />
+      <button type="button" class="search-close" aria-label="关闭搜索">
+        <i class="iconfont icon-close" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div id="search-results" aria-live="polite"></div>
+    <div class="search-foot" aria-hidden="true">
+      <span class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span class="search-hint"><kbd>Enter</kbd> 打开</span>
+      <span class="search-hint"><kbd>Esc</kbd> 关闭</span>
     </div>
   </div>
 </dialog>
 
-<style>
+<style is:global>
+  /* 弹窗定位：Tailwind preflight 把 dialog 的 margin 清零会破坏 UA 的居中，
+     这里显式恢复 margin:auto 居中；移动端改为顶部展开。 */
+  #search-dialog {
+    margin: auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    width: min(680px, calc(100vw - 2rem));
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+    color: rgb(var(--color-text-primary));
+  }
   #search-dialog::backdrop {
-    background: rgb(31 41 55 / 0.4);
+    background: rgb(24 24 27 / 0.44);
+    backdrop-filter: blur(6px) saturate(1.3);
+    -webkit-backdrop-filter: blur(6px) saturate(1.3);
+    animation: search-backdrop-in 0.22s ease;
+  }
+  [data-theme='dark'] #search-dialog::backdrop {
+    background: rgb(0 0 0 / 0.55);
+  }
+
+  #search-panel {
+    display: flex;
+    flex-direction: column;
+    height: min(480px, calc(100dvh - 4rem));
+    background-color: rgb(var(--color-bg-primary));
+    border: 1px solid rgb(var(--color-border-primary));
+    border-radius: 16px;
+    box-shadow:
+      0 24px 64px -12px rgb(0 0 0 / 0.28),
+      0 0 0 1px rgb(0 0 0 / 0.02);
+    overflow: hidden;
+  }
+  [data-theme='dark'] #search-panel {
+    box-shadow:
+      0 24px 64px -12px rgb(0 0 0 / 0.6),
+      0 0 0 1px rgb(255 255 255 / 0.04);
   }
   #search-dialog[open] #search-panel {
-    animation: search-panel-in 0.25s ease-out;
+    animation: search-panel-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
   }
   @keyframes search-panel-in {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(10px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes search-backdrop-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* 输入区 */
+  #search-dialog .search-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 1.25rem;
+    border-bottom: 1px solid rgb(var(--color-border-primary));
+    transition: box-shadow 0.2s ease;
+    flex: none;
+  }
+  #search-dialog .search-head:focus-within {
+    box-shadow: inset 0 -2px 0 0 rgb(var(--color-accent));
+  }
+  #search-dialog .search-head-icon {
+    font-size: 1.125rem;
+    line-height: 1;
+    color: rgb(var(--color-text-secondary));
+    transition: color 0.2s ease;
+    flex: none;
+  }
+  #search-dialog .search-head:focus-within .search-head-icon {
+    color: rgb(var(--color-accent));
+  }
+  #search-input {
+    flex: 1;
+    min-width: 0;
+    padding: 1rem 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    color: inherit;
+  }
+  #search-input::placeholder {
+    color: rgb(var(--color-text-secondary) / 0.65);
+  }
+  #search-dialog .search-close {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    color: rgb(var(--color-text-secondary));
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
+  }
+  #search-dialog .search-close:hover {
+    color: rgb(var(--color-text-primary));
+    background-color: rgb(var(--color-bg-secondary));
+  }
+  #search-dialog .search-close .iconfont {
+    font-size: 0.875rem;
+    line-height: 1;
+  }
+
+  /* 结果区 */
+  #search-results {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.75rem;
+  }
+  #search-dialog .search-count {
+    padding: 0.25rem 0.75rem 0.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: rgb(var(--color-text-secondary));
+  }
+  #search-dialog .search-item {
+    display: block;
+    padding: 0.75rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.15s ease;
+  }
+  #search-dialog .search-item:hover,
+  #search-dialog .search-item[data-active='true'] {
+    background-color: rgb(var(--color-accent) / 0.07);
+  }
+  #search-dialog .search-item[data-active='true'] {
+    box-shadow: inset 3px 0 0 0 rgb(var(--color-accent));
+  }
+  #search-dialog .search-item-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  #search-dialog .search-item-excerpt {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: rgb(var(--color-text-secondary));
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  #search-dialog .search-item-excerpt mark {
+    background-color: rgb(var(--color-accent) / 0.15);
+    color: inherit;
+    font-weight: 600;
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+
+  /* 状态区（初始 / 加载 / 无结果 / 开发环境） */
+  #search-dialog .search-state {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+  #search-dialog .search-state-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    border: 1px solid rgb(var(--color-border-primary));
+    background-color: rgb(var(--color-bg-secondary));
+    color: rgb(var(--color-text-secondary));
+  }
+  #search-dialog .search-state-icon .iconfont {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+  #search-dialog .search-state-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  #search-dialog .search-state-sub {
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: rgb(var(--color-text-secondary));
+  }
+
+  /* 底部快捷键提示（仅桌面，移动端隐藏） */
+  #search-dialog .search-foot {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.625rem 1.25rem;
+    border-top: 1px solid rgb(var(--color-border-primary));
+    font-size: 0.75rem;
+    color: rgb(var(--color-text-secondary));
+  }
+  #search-dialog .search-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  #search-dialog .search-foot kbd {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    line-height: 1;
+    padding: 0.25rem 0.375rem;
+    border-radius: 6px;
+    border: 1px solid rgb(var(--color-border-primary));
+    border-bottom-width: 2px;
+    background-color: rgb(var(--color-bg-secondary));
+    color: rgb(var(--color-text-secondary));
+  }
+
+  /* 移动端：顶部展开，留出安全区，触控目标加大 */
+  @media (max-width: 767px) {
+    #search-dialog {
+      margin-top: max(0.75rem, env(safe-area-inset-top));
+      width: calc(100vw - 1.5rem);
+    }
+    #search-panel {
+      height: min(600px, calc(100dvh - 5rem));
+    }
+    #search-dialog[open] #search-panel {
+      animation-name: search-panel-in-mobile;
+    }
+    #search-dialog .search-foot {
+      display: none;
+    }
+    #search-dialog .search-item {
+      padding: 0.875rem 0.75rem;
+    }
+  }
+  @keyframes search-panel-in-mobile {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
     }
     to {
       opacity: 1;
@@ -54,11 +299,6 @@
 </style>
 
 <script>
-  const ICON_SEARCH = `<svg xmlns="http://www.w3.org/2000/svg" width="2em" viewBox="0 0 24 24"><path fill="currentColor" d="m18.031 16.617l4.283 4.282l-1.415 1.415l-4.282-4.283A8.96 8.96 0 0 1 11 20c-4.968 0-9-4.032-9-9s4.032-9 9-9s9 4.032 9 9a8.96 8.96 0 0 1-1.969 5.617m-2.006-.742A6.98 6.98 0 0 0 18 11c0-3.867-3.133-7-7-7s-7 3.133-7 7s3.133 7 7 7a6.98 6.98 0 0 0 4.875-1.975z"/></svg>`
-  const ICON_LOADING = `<svg xmlns="http://www.w3.org/2000/svg" width="2em" viewBox="0 0 24 24" class="animate-spin"><path fill="currentColor" d="M12 2a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1m0 15a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1m8.66-10a1 1 0 0 1-.366 1.366l-2.598 1.5a1 1 0 1 1-1-1.732l2.598-1.5A1 1 0 0 1 20.66 7M7.67 14.5a1 1 0 0 1-.367 1.366l-2.598 1.5a1 1 0 1 1-1-1.732l2.598-1.5a1 1 0 0 1 1.366.366M20.66 17a1 1 0 0 1-1.366.366l-2.598-1.5a1 1 0 0 1 1-1.732l2.598 1.5A1 1 0 0 1 20.66 17M7.67 9.5a1 1 0 0 1-1.367.366l-2.598-1.5a1 1 0 1 1 1-1.732l2.598 1.5A1 1 0 0 1 7.67 9.5"/></svg>`
-  const ICON_DEV = `<svg xmlns="http://www.w3.org/2000/svg" width="2em" viewBox="0 0 24 24"><path fill="currentColor" d="M4 20v-6a8 8 0 1 1 16 0v6h1v2H3v-2zm2 0h12v-6a6 6 0 0 0-12 0zm5-18h2v3h-2zm8.778 2.808l1.414 1.414l-2.12 2.121l-1.415-1.414zM2.808 6.222l1.414-1.414l2.121 2.12L4.93 8.344zM7 14a5 5 0 0 1 5-5v2a3 3 0 0 0-3 3z"/></svg>`
-  const ICON_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="2em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 11v2l-5.327 6H11v2H3v-2l5.326-6H3v-2zm10-8v2l-5.327 6H21v2h-8v-2l5.326-6H13V3z"/></svg>`
-
   // pagefind 索引生成在站点根（部署时即 base 子路径下），脚本与结果地址都要带 base 前缀。
   // 注意：本版本 import.meta.env.BASE_URL 为 '/astro-folio'（无尾斜杠），拼接前先归一化。
   const BASE_PREFIX = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -76,8 +316,12 @@
     }
   }
 
-  function centerWrap(inner: string) {
-    return `<div class="h-full flex items-center justify-center">${inner}</div>`
+  function stateWrap(icon: string, title: string, sub: string, spin = false) {
+    return `<div class="search-state">
+      <div class="search-state-icon"><i class="iconfont ${icon}${spin ? ' animate-spin' : ''}"></i></div>
+      <div class="search-state-title">${title}</div>
+      <div class="search-state-sub">${sub}</div>
+    </div>`
   }
 
   function initSearch() {
@@ -87,45 +331,72 @@
 
     const input = document.getElementById('search-input') as HTMLInputElement
     const resultsBox = document.getElementById('search-results') as HTMLDivElement
+    const closeBtn = dialog.querySelector('.search-close') as HTMLButtonElement | null
     const dlg = dialog
     const isDev = dialog.dataset.dev === 'true'
 
     let keyword = ''
     let results: any[] = []
     let isLoading = false
+    let activeIndex = -1
+
+    closeBtn?.addEventListener('click', () => dlg.close())
+
+    function setActive(index: number) {
+      const links = resultsBox.querySelectorAll('[data-search-result]')
+      if (links.length === 0) {
+        activeIndex = -1
+        return
+      }
+      activeIndex = (index + links.length) % links.length
+      links.forEach((a, i) => {
+        if (i === activeIndex) {
+          a.setAttribute('data-active', 'true')
+          ;(a as HTMLElement).scrollIntoView({ block: 'nearest' })
+        } else {
+          a.removeAttribute('data-active')
+        }
+      })
+    }
 
     function render() {
+      activeIndex = -1
       if (isDev) {
-        resultsBox.innerHTML = centerWrap(
-          `<div class="flex gap-2">${ICON_DEV}<div><div class="font-semibold mb-1">抱歉</div><div class="text-sm">该功能基于 pagefind，请在构建后再次尝试。</div></div></div>`,
+        resultsBox.innerHTML = stateWrap(
+          'icon-flask',
+          '搜索暂不可用',
+          '该功能基于 pagefind，请在构建后再次尝试。',
         )
         return
       }
       if (isLoading) {
-        resultsBox.innerHTML = centerWrap(ICON_LOADING)
+        resultsBox.innerHTML = stateWrap('icon-loader', '正在搜索…', '', true)
         return
       }
       if (keyword.length === 0) {
-        resultsBox.innerHTML = centerWrap(ICON_SEARCH)
+        resultsBox.innerHTML = stateWrap('icon-search', '搜索全站文章', '输入关键词开始搜索')
         return
       }
       if (results.length === 0) {
-        resultsBox.innerHTML = centerWrap(
-          `<div class="flex flex-col items-center gap-2">${ICON_EMPTY}<div>无内容</div></div>`,
+        resultsBox.innerHTML = stateWrap(
+          'icon-ghost',
+          `没有找到与「${keyword}」相关的内容`,
+          '试试更短或更常见的关键词',
         )
         return
       }
       const items = results
         .map(
-          (item) => `<a href="${withBasePrefix(item.url)}" class="hover:bg-accent/10 rounded block px-3 py-2" data-search-result>
-            <div class="font-semibold">${item.meta.title}</div>
-            <p class="text-sm">${item.excerpt}</p>
+          (item) => `<a href="${withBasePrefix(item.url)}" class="search-item" data-search-result>
+            <div class="search-item-title">${item.meta.title}</div>
+            <p class="search-item-excerpt">${item.excerpt}</p>
           </a>`,
         )
         .join('')
-      resultsBox.innerHTML = `<div class="text-sm px-3 mb-2">找到以下 ${results.length} 条结果</div>${items}`
-      resultsBox.querySelectorAll('[data-search-result]').forEach((a) => {
+      resultsBox.innerHTML = `<div class="search-count">共 ${results.length} 条结果</div>${items}`
+      resultsBox.querySelectorAll('[data-search-result]').forEach((a, i) => {
         a.addEventListener('click', () => dlg.close())
+        a.addEventListener('mouseenter', () => setActive(i))
       })
     }
 
@@ -151,6 +422,24 @@
       keyword = input.value
       window.clearTimeout(debounceTimer)
       debounceTimer = window.setTimeout(() => search(keyword), 350)
+    })
+
+    // ↑/↓ 在结果间移动，Enter 打开当前高亮项（Esc 由 dialog 原生处理）
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const links = resultsBox.querySelectorAll('[data-search-result]')
+        if (links.length === 0) return
+        e.preventDefault()
+        setActive(activeIndex + (e.key === 'ArrowDown' ? 1 : -1))
+      } else if (e.key === 'Enter') {
+        const active = resultsBox.querySelector('[data-search-result][data-active="true"]') as
+          | HTMLAnchorElement
+          | null
+        if (active) {
+          e.preventDefault()
+          active.click()
+        }
+      }
     })
 
     // 点击背景关闭（dialog 本体即背景层，面板为其子元素）
