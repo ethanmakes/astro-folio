@@ -29,6 +29,7 @@ data-share-open
 >
 <i class="iconfont icon-share"></i>
 </button>
+{sponsor.wechat && (
 <button
 type="button"
 aria-label="Donate to author"
@@ -37,6 +38,7 @@ data-donate-open
 >
 <i class="iconfont icon-user-heart"></i>
 </button>
+)}
 </div>
 
 <dialog
@@ -78,6 +80,7 @@ data-share-copy
 </div>
 </dialog>
 
+{sponsor.wechat && (
 <dialog id="donate-dialog" class="bg-transparent border-none p-0 outline-none max-w-none max-h-none">
 <div class="donate-panel">
 <h2 class="text-center mb-5">感谢您的支持，这将成为我前进的最大动力。</h2>
@@ -94,6 +97,7 @@ decoding="async"
 </div>
 </div>
 </dialog>
+)}
 
 <style>
 #share-dialog::backdrop,

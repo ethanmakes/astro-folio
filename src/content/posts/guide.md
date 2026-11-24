@@ -1,164 +1,80 @@
 ---
-title: Gyoza 使用指南
-date: 2024-04-01
-lastMod: 2024-08-10T03:58:16.758Z
-summary: 欢迎使用 Gyoza，Gyoza 是一款 Astro 博客主题，它保持简洁和可爱的风格。本篇文章将会介绍如何使用并部署 Gyoza。
+title: 欢迎使用 Folio
+date: 2026-11-24
+lastMod: 2026-11-24T00:00:00.000Z
+summary: Folio 是一款简洁、快速的 Astro 博客主题。本文介绍它的特性、安装方式与基本配置。
 category: 教程
-tags: [Astro, Gyoza]
+tags: [Astro, Folio]
 sticky: 1
 ---
 
-## 前置条件
+Folio 是一款 Astro 博客主题，追求简洁与快速。它基于上游主题 [astro-gyoza](https://github.com/lxchapu/astro-gyoza) 重构而来，保留了原有的设计与使用体验，技术栈则全面升级到当前最新版本，并移除了全部 React 运行时。在此向原作者表示感谢。
 
-- node 版本 >= 18.18.0
-- pnpm 版本 > 8.1.0
+## 特性
 
-## 安装
+- **最新技术栈**：Astro 7 + Tailwind CSS 4，内容集合使用 Content Layer API 管理。
+- **零 React 运行时**：所有组件均为 Astro 组件与原生脚本，页面更轻，加载更快。
+- **全文搜索**：构建时通过 pagefind 生成索引，无需任何后端服务。
+- **明暗双色**：内置亮色与暗色模式，可跟随系统或手动切换。
+- **流畅的页面切换**：基于 Astro 内置 View Transitions，翻页不刷新整页。
+- **丰富的 Markdown 渲染**：代码高亮、KaTeX 数学公式、脚注、剧透块，以及 CodePen / YouTube / Bilibili 嵌入指令。
+- **分类与标签**：文章同时支持 category 与 tags 两种组织方式。
+- **开箱即用的页面**：归档、项目、友链、关于页面齐备，内容都是普通的 Markdown 与 YAML 文件。
 
-### 克隆仓库
+## 快速开始
 
-登录 Github 账号，打开 [lxchapu/astro-gyoza](https://github.com/lxchapu/astro-gyoza)，点击右上角的 Fork 按钮，将仓库克隆到你自己的账号下。
+### 环境要求
 
-复制这个仓库的地址，打开终端，使用 `git clone` 命令将仓库克隆到本地。
+- Node.js >= 22.12
+- pnpm（推荐的包管理器）
 
-> 本项目推荐使用 pnpm 作为你的包管理器，如果你还没有安装 pnpm，请先安装 pnpm。
-
-### 安装依赖
+### 安装
 
 ```sh
-cd astro-gyoza
+git clone https://github.com/lee-citizen/astro-folio.git
+cd astro-folio
 pnpm install
 ```
 
-### 命令介绍
+### 常用命令
 
-本地运行
+本地开发（带热更新）：
 
 ```sh
 pnpm dev
 ```
 
-打包静态文件
+构建（类型检查 + 静态构建 + 生成搜索索引）：
 
 ```sh
 pnpm build
 ```
 
-本地预览
+本地预览构建产物：
 
 ```sh
 pnpm preview
 ```
 
-### 配置项
+## 配置
 
-本项目中的绝大部分配置都定义在 `src/config.json` 文件中。
+绝大部分配置集中在 `src/config.json` 一个文件中，包括站点标题与地址、作者信息、首页社交链接、菜单、配色、页脚起始时间等。开始使用前，请先把 `site.url` 改成你自己的域名，其余项目按需修改即可。
 
-你应该首先将 `site.url` 修改成自己的域名，避免导航错误。
+需要特别说明的两项：
 
-以下是配置项的说明：
+- `sponsor.wechat`：微信赞赏码图片地址。留空时，文章页的赞赏入口会自动隐藏。
+- `analytics`：网站统计配置，默认关闭；填入对应服务的 ID 并将 `enable` 改为 `true` 后生效。
 
-```json
-{
-  "site": {
-    "url": "", // 网站地址
-    "title": "", // 网站标题
-    "description": "", // 通用的网站描述 SEO
-    "keywords": "", // 通用的网站关键词 SEO
-    "lang": "zh-CN", // 网站的语言
-    "favicon": "", // 浏览器图标，存放在 public 目录下
-    "appleTouchIcon": "" // 苹果设备图标，存放在 public 目录下
-  },
-  "author": {
-    "name": "", // 作者名称
-    "twitterId": "", // 推特账号 ID，以 @ 开头，用于 Open Graph
-    "avatar": "" // 作者头像地址
-  },
-  // 首页 Hero 组件
-  "hero": {
-    "name": "", // 显示的名称
-    "bio": "", // 一句话介绍
-    "description": "", // 补充描述
-    // 社交账号
-    "socials": [
-      {
-        "name": "", // 社交平台类型
-        "icon": "", // 社交平台图标
-        "url": "", // 链接
-        "color": "" // 图标颜色
-      }
-    ],
-    "yiyan": "" // 显示一言
-  },
-  "color": {
-    // 强调色，请填写 16 进制颜色值。每次会从中随机取出一组
-    "accent": [{ "light": "", "dark": "" }],
-    // 背景色
-    "bg": {
-      "primary": { "light": "", "dark": "" },
-      "secondary": { "light": "", "dark": "" }
-    },
-    // 文字颜色
-    "text": {
-      "primary": { "light": "", "dark": "" },
-      "secondary": { "light": "", "dark": "" }
-    },
-    // 边框颜色
-    "border": {
-      "primary": { "light": "", "dark": "" }
-    }
-  },
-  // 顶部导航栏
-  "menus": [
-    {
-      "name": "首页",
-      "link": "/",
-      "icon": "icon-pantone"
-    }
-  ],
-  "posts": {
-    "perPage": 10 // 每一页显示的文章数量
-  },
-  "footer": {
-    "startTime": "" // 博客网站开始时间 请使用 ISO 格式
-  },
-  // Waline 评论系统，前往 https://waline.js.org/ 查看
-  "waline": {
-    "serverURL": ""
-  },
-  // 赞助
-  "sponsor": {
-    "wechat": "" // 微信赞赏码图片地址
-  },
-  // 如果需要使用网站数据统计，将 enable 修改为 true，并填写对应的配置
-  "analytics": {
-    "enable": false,
-    // https://analytics.google.com
-    "google": {
-      "measurementId": ""
-    },
-    // https://umami.is/docs
-    "umami": {
-      "serverUrl": "",
-      "websiteId": ""
-    },
-    // https://clarity.microsoft.com/
-    "microsoftClarity": {
-      "projectId": ""
-    }
-  }
-}
+## 写文章
+
+文章存放在 `src/content/posts/` 目录下，每篇是一个 Markdown 文件，通过 frontmatter 声明标题、日期、分类、标签等信息。也可以运行脚手架命令按提示创建：
+
+```sh
+pnpm new-post
 ```
+
+本站自带的另外三篇文章分别展示了 Markdown 的渲染效果、图标的用法，以及在文章中嵌入外部内容的方法，可以作为写作时的参考。
 
 ## 部署
 
-> 这里只介绍了 Vercel，你当然可以选择其他平台例如：Cloudflare Pages 或你自己的服务器。  
-> 部署之前，确保你已经修改 `site.url`。
-
-### 部署到 Vercel
-
-登录 Vercel 账号，点击右上角的 Add new... 选择 Project。然后在 Import Git Repository 中选择刚刚 Fork 的仓库，点击 Import 按钮。
-
-进入项目配置页面，直接点击 Deploy 按钮，静静等待部署完成就 👌 了。
-
-Vercel 会为你分配一个域名，你可以在项目设置中设置自定义域名，更多操作请参考 Vercel 文档。
+构建产物是纯静态文件，可以部署到任何静态托管平台，例如 GitHub Pages、Cloudflare Pages、Vercel，或者你自己的服务器。部署前请确认 `site.url` 已改为正式域名。
