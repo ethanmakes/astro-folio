@@ -16,7 +16,9 @@
 
     const rootBgColor = {
       light: chroma.mix('rgb(250,250,250)', accentColor.light, 0.05, 'rgb'),
-      dark: chroma.mix('rgb(0,2,18)', accentColor.dark, 0.12, 'rgb'),
+      // 深色根背景直接与正文 bg-primary 同色：早先以 rgb(0,2,18) 为基底混 accent
+      // 派生出海军蓝 rgb(19,24,40)，与炭灰正文异色，页脚外区域透出后形成色带。
+      dark: chroma(themeColor.bg.primary.dark),
     }
 
     const $style = document.createElement('style')
