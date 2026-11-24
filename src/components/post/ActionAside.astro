@@ -1,0 +1,174 @@
+---
+// 替代原 React 版 ActionAside：分享/赞赏改原生 <dialog>，复制链接走自写 toast。
+// 二维码：原 qrcode.react 改为构建期用 qrcode 生成静态 SVG（零客户端 JS）。
+// 二维码保留方式（构建期静态生成 vs 砍掉）尚未拍板，暂以静态生成保功能。
+import { sponsor, site} from '@/config.json'
+import QRCode from 'qrcode'
+
+interface Props {
+title: string
+slug: string
+}
+
+const { title, slug} = Astro.props
+
+const url = new URL(slug, site.url).href
+const text = `嘿，我发现了一片宝藏文章「${title}」哩，快来看看吧！`
+const qrSvg = await QRCode.toString(url, { type: 'svg', width: 180, margin: 0})
+---
+
+<div
+class="absolute left-0 bottom-0 flex flex-col gap-4"
+style="transform: translateY(calc(100% + 24px))"
+>
+<button
+type="button"
+aria-label="Share this post"
+class="size-6 text-xl leading-none hover:text-accent"
+data-share-open
+>
+<i class="iconfont icon-share"></i>
+</button>
+<button
+type="button"
+aria-label="Donate to author"
+class="size-6 text-xl leading-none hover:text-accent"
+data-donate-open
+>
+<i class="iconfont icon-user-heart"></i>
+</button>
+</div>
+
+<dialog
+id="share-dialog"
+class="bg-transparent border-none p-0 outline-none max-w-none max-h-none"
+data-url={url}
+data-text={text}
+data-via={site.title}
+>
+<div class="share-panel bg-primary rounded-lg p-2 min-w-[420px] border border-primary flex flex-col">
+<h2 class="px-3 py-1 font-bold">分享此内容</h2>
+<hr class="my-2 border-primary" />
+<div class="px-3 py-2 grid grid-cols-[180px_auto] gap-3">
+<div class="size-[180px] [&>svg]:size-full" set:html={qrSvg} />
+<div class="flex flex-col gap-2">
+<div class="text-sm">分享到...</div>
+<ul class="flex flex-col gap-2">
+<li
+class="px-2 py-1 flex gap-2 cursor-pointer rounded-md hover:bg-secondary"
+role="button"
+aria-label="Share to Twitter"
+data-share-twitter
+>
+<i class="iconfont text-accent icon-x"></i>
+<span>Twitter</span>
+</li>
+<li
+class="px-2 py-1 flex gap-2 cursor-pointer rounded-md hover:bg-secondary"
+role="button"
+aria-label="Share to 复制链接"
+data-share-copy
+>
+<i class="iconfont text-accent icon-link"></i>
+<span>复制链接</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</dialog>
+
+<dialog id="donate-dialog" class="bg-transparent border-none p-0 outline-none max-w-none max-h-none">
+<div class="donate-panel">
+<h2 class="text-center mb-5">感谢您的支持，这将成为我前进的最大动力。</h2>
+<div class="flex flex-wrap gap-4 justify-center">
+<img
+class="object-cover"
+width="300"
+height="300"
+src={sponsor.wechat}
+alt="微信赞赏码"
+loading="lazy"
+decoding="async"
+/>
+</div>
+</div>
+</dialog>
+
+<style>
+#share-dialog::backdrop,
+#donate-dialog::backdrop {
+background: rgb(31 41 55 / 0.4);
+}
+#share-dialog[open].share-panel {
+animation: share-panel-in 0.25s ease-out;
+}
+@keyframes share-panel-in {
+from {
+opacity: 0;
+transform: scale(0.8);
+}
+to {
+opacity: 1;
+transform: scale(1);
+}
+}
+#donate-dialog[open].donate-panel {
+animation: donate-panel-in 0.25s ease-out;
+}
+@keyframes donate-panel-in {
+from {
+opacity: 0;
+transform: translateY(20px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+</style>
+
+<script>
+function initActionAside() {
+const shareDialog = document.getElementById('share-dialog') as HTMLDialogElement | null
+const donateDialog = document.getElementById('donate-dialog') as HTMLDialogElement | null
+
+document.querySelectorAll('[data-share-open]').forEach((btn) => {
+if ((btn as HTMLElement).dataset.bound === 'true') return
+;(btn as HTMLElement).dataset.bound = 'true'
+btn.addEventListener('click', () => shareDialog?.showModal())
+})
+document.querySelectorAll('[data-donate-open]').forEach((btn) => {
+if ((btn as HTMLElement).dataset.bound === 'true') return
+;(btn as HTMLElement).dataset.bound = 'true'
+btn.addEventListener('click', () => donateDialog?.showModal())
+})
+
+if (shareDialog && shareDialog.dataset.bound!== 'true') {
+shareDialog.dataset.bound = 'true'
+const { url, text, via} = shareDialog.dataset
+shareDialog.addEventListener('click', (e) => {
+if (e.target === shareDialog) shareDialog.close()
+})
+shareDialog.querySelector('[data-share-twitter]')?.addEventListener('click', () => {
+window.open(
+`https://twitter.com/intent/tweet?url=${encodeURIComponent(url!)}&text=${encodeURIComponent(text!)}&via=${encodeURIComponent(via!)}`,
+)
+})
+shareDialog.querySelector('[data-share-copy]')?.addEventListener('click', () => {
+navigator.clipboard.writeText(url!)
+;(window as any).toast?.success('已复制到剪贴板')
+})
+}
+
+if (donateDialog && donateDialog.dataset.bound!== 'true') {
+donateDialog.dataset.bound = 'true'
+donateDialog.addEventListener('click', (e) => {
+if (e.target === donateDialog) donateDialog.close()
+})
+}
+}
+
+document.addEventListener('astro:page-load', initActionAside)
+initActionAside()
+</script>

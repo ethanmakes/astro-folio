@@ -1,0 +1,30 @@
+---
+// 替代原 React 版 RelativeDate：服务端直出格式化日期，客户端脚本按原 utils/date 规则替换为相对时间。
+import { getFormattedDate } from '@/utils/date'
+
+interface Props {
+  date: Date
+}
+
+const { date } = Astro.props
+---
+
+<span data-relative-date={date.toISOString()}>{getFormattedDate(date)}</span>
+
+<script>
+  import { getRelativeTime } from '@/utils/date'
+
+  function initRelativeDates() {
+    document.querySelectorAll<HTMLElement>('[data-relative-date]').forEach((el) => {
+      if (el.dataset.replaced === 'true') return
+      const relative = getRelativeTime(new Date(el.dataset.relativeDate!))
+      if (relative) {
+        el.textContent = relative
+        el.dataset.replaced = 'true'
+      }
+    })
+  }
+
+  document.addEventListener('astro:page-load', initRelativeDates)
+  initRelativeDates()
+</script>

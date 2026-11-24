@@ -25,5 +25,6 @@
 
   load()
 
-  // document.addEventListener('swup:content:replace', load)
+  // View Transitions 页面切换后重新应用主题与哀悼日样式
+  document.addEventListener('astro:after-swap', load)
 </script>

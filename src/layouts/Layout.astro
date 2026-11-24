@@ -6,9 +6,8 @@ import {
   AccentColorInjector,
   PrintVersion,
 } from '@/components/head'
-import { BackToTopFAB } from '@/components/BackToTopFAB'
-import { ToastContainer } from '@/components/ToastContainer'
-import { ModalStack } from '@/components/ui/modal'
+import BackToTopFAB from '@/components/BackToTopFAB.astro'
+import { ClientRouter } from 'astro:transitions'
 import { site } from '@/config.json'
 import '@/styles/global.css'
 
@@ -29,12 +28,15 @@ const { title, description, image } = Astro.props
     <ThemeLoader />
     <AccentColorInjector />
     <PrintVersion />
+    <ClientRouter />
   </head>
   <body>
     <slot />
 
-    <BackToTopFAB client:only="react" />
-    <ToastContainer client:only="react" />
-    <ModalStack client:only="react" />
+    <BackToTopFAB />
+    <script>
+      import { toast } from '@/scripts/toast'
+      ;(window as any).toast = toast
+    </script>
   </body>
 </html>

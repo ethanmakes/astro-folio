@@ -1,8 +1,77 @@
+@import 'tailwindcss';
 @import './iconfont.css';
 @import './shiki.css';
 @import './markdown.css';
 @import './signature.css';
-@import './swup.css';
+
+/* 暗色模式沿用原版：[data-theme="dark"] 属性选择器（原 tailwind.config darkMode 配置） */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme {
+  /* 字体栈与字号：原 tailwind.config.ts 的 fontFamily / fontSize 迁移至此 */
+  --font-sans:
+    'Noto Sans SC', 'Source Han Sans SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-serif: 'Noto Serif SC', 'Source Han Serif SC', 'Source Han Serif', serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  /* 原 v3 配置字号不带行高（纯字符串），用 initial 还原“不设置行高”的行为 */
+  --text-xs--line-height: initial;
+  --text-sm--line-height: initial;
+  --text-base--line-height: initial;
+  --text-lg--line-height: initial;
+  --text-xl--line-height: initial;
+  --text-2xl--line-height: initial;
+  --text-3xl--line-height: initial;
+  --text-4xl--line-height: initial;
+  --text-5xl--line-height: initial;
+
+  --min-height-main: calc(100vh - 200px);
+}
+
+@theme inline {
+  /* accent 色沿用运行时注入的 --color-accent（AccentColorInjector），inline 避免变量自引用 */
+  --color-accent: rgb(var(--color-accent) / 1);
+}
+
+/* 语义色在原 v3 中分属 textColor/backgroundColor/borderColor 三个命名空间，
+   值互不相同，v4 单一 --color 命名空间无法表达，故用 @utility 逐个定义（类名与行为不变）。 */
+@utility text-primary {
+  color: rgb(var(--color-text-primary));
+}
+
+@utility text-secondary {
+  color: rgb(var(--color-text-secondary));
+}
+
+@utility bg-root {
+  background-color: rgb(var(--color-bg-root));
+}
+
+@utility bg-primary {
+  background-color: rgb(var(--color-bg-primary));
+}
+
+@utility bg-secondary {
+  background-color: rgb(var(--color-bg-secondary));
+}
+
+@utility border-primary {
+  border-color: rgb(var(--color-border-primary));
+}
+
+@utility transition-bg-color {
+  transition-property: background-color;
+}
 
 @font-face {
   font-family: 'Atkinson';
@@ -21,17 +90,17 @@
 }
 
 ::selection {
-  background-color: theme('colors.accent');
+  background-color: rgb(var(--color-accent));
   color: white;
 }
 
 [data-theme='dark'] ::selection {
-  background-color: theme('colors.accent/0.3');
+  background-color: rgb(var(--color-accent) / 0.3);
 }
 
 html {
-  color: theme('textColor.primary');
-  background-color: theme('backgroundColor.root');
+  color: rgb(var(--color-text-primary));
+  background-color: rgb(var(--color-bg-root));
   scroll-padding-top: 64px;
 }
 
@@ -41,4 +110,51 @@ html.gray {
 
 * {
   scrollbar-width: thin;
+}
+
+/* 顶栏菜单 active 图标入场（原 framer-motion y:10→0 + opacity 0→1） */
+@keyframes menu-icon-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-icon-in {
+  animation: menu-icon-in 0.3s ease both;
+}
+
+/* 自写 toast（原 react-toastify 平替）进出场动画 */
+.toast-enter {
+  animation: toast-in 0.3s ease forwards;
+}
+
+.toast-leave {
+  animation: toast-out 0.3s ease forwards;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(50%);
+  }
 }

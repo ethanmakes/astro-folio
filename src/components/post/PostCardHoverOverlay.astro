@@ -1,0 +1,23 @@
+---
+// 替代原 React 版 PostCardHoverOverlay：纯 CSS :hover/:focus 覆盖层。
+// 注：原版 framer-motion layoutId 的跨卡片滑动动画纯 CSS 无法 1:1 复刻，
+// 平替为单卡淡入/缩放，视觉终态一致（REFORM-PLAN 记录项）。
+---
+
+<div class="post-card-overlay absolute inset-y-4 -inset-x-4 -z-1 bg-accent/10 rounded-lg"></div>
+
+<style>
+  .post-card-overlay {
+    opacity: 0;
+    scale: 0.95;
+    transition:
+      opacity 0.2s ease,
+      scale 0.2s ease;
+    pointer-events: none;
+  }
+  a:hover > .post-card-overlay,
+  a:focus > .post-card-overlay {
+    opacity: 1;
+    scale: 1;
+  }
+</style>

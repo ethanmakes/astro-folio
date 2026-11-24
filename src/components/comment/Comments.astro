@@ -1,8 +1,6 @@
 ---
-import { Waline } from './Waline'
-import { waline } from '@/config.json'
+// 评论已按一期方案关闭：Waline 需要单独部署服务端，与「纯静态、无后端」冲突，已移除。
+// 文章 frontmatter 的 comments 字段保留在 schema 中，将来接入 giscus 等零后端方案时在此恢复渲染。
 ---
 
-<div>
-  {waline.serverURL && <Waline {...waline} client:visible />}
-</div>
+{/* 评论功能已关闭（原 Waline 实现已移除） */}

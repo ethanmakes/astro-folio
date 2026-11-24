@@ -1,0 +1,36 @@
+---
+// 替代原 React 版 Outdate：天数差为确定值，服务端计算直出（淡入改 CSS animation）。
+import { getDiffInDays, getFormattedDate } from '@/utils/date'
+
+interface Props {
+  lastMod: Date
+}
+
+const { lastMod } = Astro.props
+const isShow = getDiffInDays(lastMod) > 30
+---
+
+{
+  isShow && (
+    <div class="outdate flex justify-center text-sm p-4 rounded-lg bg-amber-300/10 border border-amber-300">
+      <span>
+        这篇文章最后修改于 {getFormattedDate(lastMod)}
+        ，部分内容可能已经不适用，如有疑问可联系作者。
+      </span>
+    </div>
+  )
+}
+
+<style>
+  .outdate {
+    animation: outdate-in 0.3s ease-out;
+  }
+  @keyframes outdate-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

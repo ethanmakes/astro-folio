@@ -1,0 +1,340 @@
+---
+// 替代原 React 版 Header 全家（Header/HeaderContent/HeaderMeta/AnimatedLogo/
+// BluredBackground/HeaderDrawer/hooks）：服务端渲染 + 原生脚本驱动滚动状态。
+// 行为与原版一致：
+// - 顶栏毛玻璃背景 opacity 随滚动 60→120 线性加深（保留两位小数）
+// - 桌面菜单胶囊：顶部 60px 内显示背景辉光胶囊，滚动后背景消失
+// - 文章页滚动 ≥60px 后菜单/logo 与文章 meta 互换；滚动 ≥400px 且上滑时顶部浮动菜单出现
+// - 移动端：抽屉菜单（条目 stagger）、meta 出现时 logo 淡出
+import { menus, author, site } from '@/config.json'
+import SearchPanel from './SearchPanel.astro'
+
+interface Props {
+  title?: string
+  description?: string
+  slug?: string
+}
+
+const { title = '', description = '', slug = '' } = Astro.props
+
+const hasMeta = title !== '' && description !== '' && slug !== ''
+const pathName = Astro.url.pathname === '/' ? '/' : Astro.url.pathname.replace(/\/$/, '')
+
+const menuItems = menus.map((menu) => ({ ...menu, isActive: pathName === menu.link }))
+
+const menuBgClasses =
+  'bg-gradient-to-b from-zinc-50/70 to-white/90 shadow-lg shadow-zinc-800/5 ring-1 ring-zinc-900/5 backdrop-blur-md dark:from-zinc-900/70 dark:to-zinc-800/90 dark:ring-zinc-100/10'
+---
+
+<header class="fixed top-0 inset-x-0 h-[64px] z-10 overflow-hidden" data-has-meta={hasMeta}>
+  <div
+    id="header-bg"
+    class="absolute inset-0 -z-1 border-b border-primary bg-white/70 dark:bg-zinc-800/70 backdrop-saturate-150 backdrop-blur-lg transform-gpu"
+    style="opacity: 0"
+  >
+  </div>
+  <div class="max-w-[1100px] h-full md:px-4 mx-auto grid grid-cols-[64px_auto_64px]">
+    <div class="flex items-center justify-center">
+      <button
+        id="drawer-open"
+        class="md:hidden size-9 rounded-full shadow-lg shadow-zinc-800/5 border border-primary bg-white/50 dark:bg-zinc-800/50 backdrop-blur"
+        type="button"
+        aria-label="Open menu"
+      >
+        <i class="iconfont icon-menu"></i>
+      </button>
+      <a class="hidden md:block" href="/" title="Nav to home">
+        <img
+          class="size-[40px] select-none object-cover rounded-2xl"
+          src={author.avatar}
+          alt="Site owner avatar"
+        />
+      </a>
+    </div>
+    <div class="relative flex items-center justify-center">
+      <a
+        id="logo-mobile"
+        class="md:hidden block transition-opacity duration-300"
+        href="/"
+        title="Nav to home"
+      >
+        <img
+          class="size-[40px] select-none object-cover rounded-2xl"
+          src={author.avatar}
+          alt="Site owner avatar"
+        />
+      </a>
+      <div id="header-menu-wrap" class="hidden md:block transition-opacity duration-300">
+        <nav
+          id="header-menu"
+          class:list={['relative rounded-full group pointer-events-auto duration-200', menuBgClasses]}
+        >
+          <div
+            class="header-menu-glow absolute -z-1 -inset-px rounded-full opacity-0 group-hover:opacity-100 duration-500"
+            aria-hidden="true"
+          >
+          </div>
+          <div class="text-sm px-4 flex">
+            {
+              menuItems.map((menu) => (
+                <a
+                  class:list={[
+                    'relative block px-4 py-1.5',
+                    menu.isActive ? 'text-accent' : 'hover:text-accent',
+                  ]}
+                  href={menu.link}
+                >
+                  <div class="flex space-x-2">
+                    {menu.isActive && <i class:list={['iconfont menu-icon-in', menu.icon]} />}
+                    <span>{menu.name}</span>
+                  </div>
+                  {menu.isActive && (
+                    <div class="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
+                  )}
+                </a>
+              ))
+            }
+          </div>
+        </nav>
+      </div>
+      {
+        hasMeta && (
+          <div
+            id="header-meta"
+            class="absolute inset-0 z-1 flex items-center justify-between md:px-10 opacity-0 translate-y-5 pointer-events-none transition-all duration-300"
+          >
+            <div class="grow min-w-0">
+              <div class="text-secondary text-xs truncate">{description}</div>
+              <h2 class="truncate text-lg">{title}</h2>
+            </div>
+            <div class="hidden md:block min-w-0 text-right">
+              <div class="text-secondary text-xs truncate">{slug}</div>
+              <div>{site.title}</div>
+            </div>
+          </div>
+        )
+      }
+    </div>
+    <div class="flex items-center justify-center">
+      <button
+        id="search-open"
+        class="size-9 rounded-full shadow-lg shadow-zinc-800/5 border border-primary bg-white/50 dark:bg-zinc-800/50 backdrop-blur"
+        type="button"
+        aria-label="Search"
+      >
+        <i class="iconfont icon-search"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+{/* 文章页上滑浮动菜单（原 RootPortal + AccessibleMenu） */}
+<div
+  id="accessible-menu"
+  class="hidden md:flex fixed z-10 top-12 inset-x-0 justify-center pointer-events-none opacity-0 -translate-y-5 invisible transition-all duration-300"
+>
+  <nav class:list={['header-menu relative rounded-full group pointer-events-auto duration-200', menuBgClasses]}>
+    <div
+      class="header-menu-glow absolute -z-1 -inset-px rounded-full opacity-0 group-hover:opacity-100 duration-500"
+      aria-hidden="true"
+    >
+    </div>
+    <div class="text-sm px-4 flex">
+      {
+        menuItems.map((menu) => (
+          <a
+            class:list={[
+              'relative block px-4 py-1.5',
+              menu.isActive ? 'text-accent' : 'hover:text-accent',
+            ]}
+            href={menu.link}
+          >
+            <div class="flex space-x-2">
+              {menu.isActive && <i class:list={['iconfont menu-icon-in', menu.icon]} />}
+              <span>{menu.name}</span>
+            </div>
+            {menu.isActive && (
+              <div class="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
+            )}
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+</div>
+
+{/* 移动端抽屉（原 radix Dialog + framer-motion，改原生 + CSS 过渡） */}
+<div
+  id="drawer-overlay"
+  class="md:hidden fixed inset-0 bg-gray-800/40 opacity-0 pointer-events-none transition-opacity duration-300"
+  style="z-index: 998"
+>
+</div>
+<div
+  id="drawer-panel"
+  class="md:hidden fixed left-0 inset-y-0 h-full bg-primary rounded-r-lg p-4 flex flex-col justify-center w-[260px] max-w-[80%] -translate-x-full transition-transform duration-200 ease-out"
+  style="z-index: 999"
+  role="dialog"
+  aria-modal="true"
+>
+  <ul class="mt-8 pb-8 overflow-y-auto overflow-x-hidden min-h-0">
+    {
+      menuItems.map((menu, i) => (
+        <li
+          class="drawer-item opacity-0 -translate-x-full transition-all duration-200 ease-out"
+          style={`transition-delay: ${0.1 + i * 0.1}s`}
+        >
+          <a class="drawer-link inline-flex p-2 space-x-4" href={menu.link}>
+            <i class:list={['iconfont', menu.icon]} />
+            <span>{menu.name}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<SearchPanel />
+
+<script>
+  import { getScrollState, onScrollStateChange, startScrollTracking } from '@/scripts/scroll'
+
+  const MENU_BG_CLASSES = [
+    'bg-gradient-to-b',
+    'from-zinc-50/70',
+    'to-white/90',
+    'shadow-lg',
+    'shadow-zinc-800/5',
+    'ring-1',
+    'ring-zinc-900/5',
+    'backdrop-blur-md',
+    'dark:from-zinc-900/70',
+    'dark:to-zinc-800/90',
+    'dark:ring-zinc-100/10',
+  ]
+
+  function applyScrollState() {
+    const { y, direction } = getScrollState()
+    const header = document.querySelector<HTMLElement>('header[data-has-meta]')
+    if (!header) return
+    const hasMeta = header.dataset.hasMeta === 'true'
+
+    // 毛玻璃背景 opacity：60 以下 0，120 以上 1，中间线性（保留两位小数）
+    const bg = document.getElementById('header-bg')
+    if (bg) {
+      let opacity: number
+      if (y >= 120) opacity = 1
+      else if (y <= 60) opacity = 0
+      else opacity = Math.floor(((y - 60) / 60) * 100) / 100
+      bg.style.opacity = String(opacity)
+    }
+
+    // 桌面菜单背景：滚动 <60 显示
+    const menu = document.getElementById('header-menu')
+    if (menu) {
+      MENU_BG_CLASSES.forEach((c) => menu.classList.toggle(c, y < 60))
+    }
+
+    const showMeta = hasMeta && y >= 60
+
+    const meta = document.getElementById('header-meta')
+    if (meta) {
+      meta.classList.toggle('opacity-0', !showMeta)
+      meta.classList.toggle('translate-y-5', !showMeta)
+      meta.classList.toggle('pointer-events-none', !showMeta)
+    }
+
+    const menuWrap = document.getElementById('header-menu-wrap')
+    if (menuWrap) {
+      menuWrap.classList.toggle('opacity-0', showMeta)
+      menuWrap.classList.toggle('pointer-events-none', showMeta)
+    }
+
+    const logoMobile = document.getElementById('logo-mobile')
+    if (logoMobile) {
+      logoMobile.classList.toggle('opacity-0', showMeta)
+      logoMobile.classList.toggle('pointer-events-none', showMeta)
+    }
+
+    // 浮动菜单：文章页、滚动 ≥400 且方向向上
+    const acc = document.getElementById('accessible-menu')
+    if (acc) {
+      const show = hasMeta && y >= 400 && direction === 'up'
+      acc.classList.toggle('opacity-0', !show)
+      acc.classList.toggle('-translate-y-5', !show)
+      acc.classList.toggle('pointer-events-none', !show)
+      acc.classList.toggle('invisible', !show)
+    }
+  }
+
+  function closeDrawer() {
+    const overlay = document.getElementById('drawer-overlay')
+    const panel = document.getElementById('drawer-panel')
+    if (!overlay || !panel) return
+    overlay.classList.add('opacity-0', 'pointer-events-none')
+    panel.classList.add('-translate-x-full')
+    panel.querySelectorAll('.drawer-item').forEach((item) => {
+      item.classList.add('opacity-0', '-translate-x-full')
+    })
+  }
+
+  function openDrawer() {
+    const overlay = document.getElementById('drawer-overlay')
+    const panel = document.getElementById('drawer-panel')
+    if (!overlay || !panel) return
+    overlay.classList.remove('opacity-0', 'pointer-events-none')
+    panel.classList.remove('-translate-x-full')
+    panel.querySelectorAll('.drawer-item').forEach((item) => {
+      item.classList.remove('opacity-0', '-translate-x-full')
+    })
+  }
+
+  function initHeader() {
+    startScrollTracking()
+    applyScrollState()
+
+    // 菜单径向辉光
+    document.querySelectorAll<HTMLElement>('.header-menu').forEach((nav) => {
+      if (nav.dataset.glowBound === 'true') return
+      nav.dataset.glowBound = 'true'
+      const glow = nav.querySelector<HTMLElement>('.header-menu-glow')
+      if (!glow) return
+      nav.addEventListener('mousemove', (e) => {
+        const bounds = nav.getBoundingClientRect()
+        const x = e.clientX - bounds.left
+        const y = e.clientY - bounds.top
+        const radius = Math.sqrt(bounds.width ** 2 + bounds.height ** 2) / 2.5
+        glow.style.background = `radial-gradient(${radius}px circle at ${x}px ${y}px, rgb(var(--color-accent) / 0.12) 0%, transparent 65%)`
+      })
+    })
+
+    const openBtn = document.getElementById('drawer-open')
+    if (openBtn && openBtn.dataset.bound !== 'true') {
+      openBtn.dataset.bound = 'true'
+      openBtn.addEventListener('click', openDrawer)
+    }
+    const overlay = document.getElementById('drawer-overlay')
+    if (overlay && overlay.dataset.bound !== 'true') {
+      overlay.dataset.bound = 'true'
+      overlay.addEventListener('click', closeDrawer)
+    }
+    document.querySelectorAll('.drawer-link').forEach((a) => {
+      a.addEventListener('click', closeDrawer)
+    })
+
+    const searchBtn = document.getElementById('search-open')
+    if (searchBtn && searchBtn.dataset.bound !== 'true') {
+      searchBtn.dataset.bound = 'true'
+      searchBtn.addEventListener('click', () => (window as any).__openSearch?.())
+    }
+  }
+
+  const w = window as any
+  if (!w.__headerScrollBound) {
+    w.__headerScrollBound = true
+    onScrollStateChange(applyScrollState)
+  }
+
+  document.addEventListener('astro:page-load', initHeader)
+  initHeader()
+</script>

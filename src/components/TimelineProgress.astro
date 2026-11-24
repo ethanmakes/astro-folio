@@ -1,0 +1,69 @@
+---
+// 替代原 React 版 TimelineProgress（archives 页）：
+// 年/日进度 + 数字滚动（原 framer-motion CountUp 改原生 rAF 复刻），1s 间隔刷新逻辑不变。
+---
+
+<div id="timeline-progress">
+  <p class="mt-4">
+    今天是 <span data-year>0</span> 年的第 <span data-countup data-to="0" data-decimals="0">0</span> 天
+  </p>
+  <p class="mt-4">
+    今年已过 <span data-countup data-to="0" data-decimals="5">0</span>%
+  </p>
+  <p class="mt-4">
+    今天已过 <span data-countup data-to="0" data-decimals="5">0</span>%
+  </p>
+</div>
+
+<script>
+  import { getDaysInYear, getDiffInDays, getStartOfDay, getStartOfYear } from '@/utils/date'
+
+  function animateCount(el: HTMLElement, from: number, to: number, decimals: number, duration = 1000) {
+    const start = performance.now()
+    function frame(now: number) {
+      const t = Math.min((now - start) / duration, 1)
+      const value = from + (to - from) * t
+      el.textContent = value.toFixed(decimals)
+      if (t < 1) requestAnimationFrame(frame)
+    }
+    requestAnimationFrame(frame)
+  }
+
+  function initTimelineProgress() {
+    const root = document.getElementById('timeline-progress')
+    if (!root || root.dataset.bound === 'true') return
+    root.dataset.bound = 'true'
+
+    const yearEl = root.querySelector<HTMLElement>('[data-year]')
+    const counters = Array.from(root.querySelectorAll<HTMLElement>('[data-countup]'))
+    const prev = new Map<HTMLElement, number>()
+
+    function updateInfo() {
+      const now = new Date()
+      if (yearEl) yearEl.textContent = String(now.getFullYear())
+
+      const pastDays = getDiffInDays(getStartOfYear(now), now)
+      const values = [
+        pastDays,
+        (pastDays / getDaysInYear(now)) * 100,
+        ((now.getTime() - getStartOfDay(now).getTime()) / 86400 / 1000) * 100,
+      ]
+      counters.forEach((el, i) => {
+        const decimals = Number(el.dataset.decimals || 0)
+        animateCount(el, prev.get(el) ?? 0, values[i], decimals)
+        prev.set(el, values[i])
+      })
+    }
+
+    updateInfo()
+    const interval = window.setInterval(updateInfo, 1000)
+    document.addEventListener(
+      'astro:before-swap',
+      () => window.clearInterval(interval),
+      { once: true },
+    )
+  }
+
+  document.addEventListener('astro:page-load', initTimelineProgress)
+  initTimelineProgress()
+</script>

@@ -1,0 +1,23 @@
+---
+// 替代原 React 版 HeadGradient：纯 div + CSS animation 淡入（原 framer-motion opacity 0→1）。
+---
+
+<div
+  class="head-gradient absolute -z-1 top-0 inset-x-0 h-[350px] bg-gradient-to-r from-accent/5 to-accent/15"
+  style="mask-image: linear-gradient(black, transparent)"
+>
+</div>
+
+<style>
+  .head-gradient {
+    animation: head-gradient-in 0.6s ease-out;
+  }
+  @keyframes head-gradient-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

@@ -1,0 +1,44 @@
+---
+// 替代原 React 版 ReadingProgress：按 #markdown-wrapper 高度计算阅读进度（lodash floor 改 Math.floor）。
+---
+
+<div>
+  <span class="text-sm">进度 <span id="reading-progress">0</span>%</span>
+</div>
+
+<script>
+  import { getScrollState, onScrollStateChange, startScrollTracking } from '@/scripts/scroll'
+
+  function updateProgress() {
+    const el = document.getElementById('reading-progress')
+    if (!el) return
+    const article = document.querySelector('#markdown-wrapper') as HTMLElement | null
+    if (!article) return
+
+    const { offsetHeight, offsetTop } = article
+    const fullHeight = offsetHeight + offsetTop - window.innerHeight
+    const y = getScrollState().y
+
+    let percent: number
+    if (y > fullHeight) {
+      percent = 100
+    } else {
+      percent = Math.floor((y / fullHeight) * 100)
+    }
+    el.textContent = String(percent)
+  }
+
+  function initProgress() {
+    startScrollTracking()
+    updateProgress()
+  }
+
+  const w = window as any
+  if (!w.__readingProgressBound) {
+    w.__readingProgressBound = true
+    onScrollStateChange(updateProgress)
+  }
+
+  document.addEventListener('astro:page-load', initProgress)
+  initProgress()
+</script>

@@ -1,0 +1,9 @@
+---
+// 替代原 React 版 RunningDays：天数差为固定配置的确定值，改为服务端计算直出（结果一致）。
+import { footer } from '@/config.json'
+import { getDiffInDays } from '@/utils/date'
+
+const days = getDiffInDays(new Date(footer.startTime))
+---
+
+{days < 0 ? <span>Ops! 网站还没有发布</span> : <span>已经运行了 {days} 天</span>}

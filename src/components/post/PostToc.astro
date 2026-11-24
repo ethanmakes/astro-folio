@@ -1,0 +1,109 @@
+---
+// 替代原 React 版 PostToc：Astro 渲染目录 + 原生脚本滚动间谍。
+// active 判定与原版一致：标题 top ≤80 且下一标题 top >80；active 项自动滚入容器（方向感知）。
+import type { MarkdownHeading } from 'astro'
+
+interface Props {
+  headings: MarkdownHeading[]
+}
+
+const { headings } = Astro.props
+---
+
+<ul
+  id="post-toc"
+  class="relative overflow-y-auto space-y-2 group text-sm"
+  style="max-height: min(380px, calc(100vh - 250px)); scrollbar-width: none"
+>
+  {
+    headings.map((item) => (
+      <li class="post-toc-item relative" data-slug={item.slug}>
+        <span
+          class="post-toc-bar absolute left-0 top-2 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700"
+          style={`width: ${4 * (7 - item.depth)}px`}
+        />
+        <a
+          class="post-toc-link inline-block pl-8 opacity-0 transition-opacity duration-300 group-hover:opacity-100 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+          href={`#${item.slug}`}
+        >
+          <span>{item.text}</span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  #post-toc li.toc-active .post-toc-bar {
+    background-color: rgb(var(--color-accent));
+  }
+  #post-toc li.toc-active .post-toc-link {
+    opacity: 1;
+    color: inherit;
+  }
+</style>
+
+<script>
+  import { getScrollState, onScrollStateChange, startScrollTracking } from '@/scripts/scroll'
+
+  function scrollItemIntoView(li: HTMLElement) {
+    const container = li.parentElement
+    if (!container) return
+    const containerHeight = container.clientHeight
+    const itemHeight = li.clientHeight
+    const itemOffsetTop = li.offsetTop
+    const scrollTop = container.scrollTop
+
+    const itemTop = itemOffsetTop - scrollTop
+    const itemBottom = itemTop + itemHeight
+
+    if (itemTop < 0 || itemBottom > containerHeight) {
+      if (getScrollState().direction === 'up') {
+        container.scrollTop = itemOffsetTop - containerHeight + itemHeight
+      } else {
+        container.scrollTop = itemOffsetTop
+      }
+    }
+  }
+
+  function computeActive() {
+    const toc = document.getElementById('post-toc')
+    if (!toc) return
+    const article = document.querySelector('#markdown-wrapper')
+    if (!article) return
+
+    const headings = Array.from(article.querySelectorAll('h1,h2,h3,h4,h5,h6'))
+    let activeId = ''
+    for (let i = 0; i < headings.length; i++) {
+      const itemTop = headings[i].getBoundingClientRect().top
+      const nextItemTop = headings[i + 1] ? headings[i + 1].getBoundingClientRect().top : 10000
+      if (itemTop <= 80 && nextItemTop > 80) {
+        activeId = headings[i].id
+        break
+      }
+    }
+
+    toc.querySelectorAll<HTMLElement>('.post-toc-item').forEach((li) => {
+      const isActive = activeId !== '' && li.dataset.slug === activeId
+      const wasActive = li.classList.contains('toc-active')
+      li.classList.toggle('toc-active', isActive)
+      if (isActive && !wasActive) {
+        scrollItemIntoView(li)
+      }
+    })
+  }
+
+  function initToc() {
+    startScrollTracking()
+    computeActive()
+  }
+
+  const w = window as any
+  if (!w.__tocScrollBound) {
+    w.__tocScrollBound = true
+    onScrollStateChange(computeActive)
+  }
+
+  document.addEventListener('astro:page-load', initToc)
+  initToc()
+</script>
