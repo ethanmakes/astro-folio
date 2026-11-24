@@ -1,9 +1,9 @@
 {
   "site": {
     "url": "https://gyoza.lxchapu.com",
-    "title": "Gyoza",
+    "title": "Folio",
     "description": "这是一个使用 Astro 开发的博客主题。",
-    "keywords": "Gyoza,blog,Astro,theme,lxchapu,博客主题",
+    "keywords": "Folio,blog,Astro,theme,博客主题",
     "lang": "zh-CN",
     "favicon": "/favicon.ico",
     "appleTouchIcon": "/apple-touch-icon.png"
@@ -14,7 +14,7 @@
     "avatar": "https://s2.loli.net/2024/04/30/ozsnuS5Ihf3xMBG.webp"
   },
   "hero": {
-    "name": "Gyoza",
+    "name": "Folio",
     "bio": "A static blog template build with Astro.",
     "description": "Clean, Cute, Fast.",
     "socials": [
