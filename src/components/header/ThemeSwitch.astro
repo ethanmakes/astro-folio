@@ -1,0 +1,86 @@
+---
+// 三档主题切换（light/system/dark），从页脚移入顶栏：
+// - 桌面端渲染在顶栏右侧（搜索按钮旁）；移动端渲染在抽屉顶部。两处实例共存，
+//   脚本按 .theme-switch class 绑定全部实例，点击任一处都会同步所有滑块位置。
+// 行为不变：滑块位移 4/36/68px；localStorage key 沿用 gyoza-theme；
+// system 档跟随系统主题变化（原 ThemeProvider 逻辑合并到此处脚本）。
+---
+
+<div class="theme-switch relative inline-block">
+  <div
+    class="theme-switch-thumb absolute -z-1 top-1 size-[32px] rounded-full bg-primary transition-transform shadow"
+    style="transform: translateX(36px)"
+  >
+  </div>
+  <div class="p-[3px] flex rounded-full border border-primary" role="radiogroup">
+    <button
+      class="size-[32px] flex items-center justify-center"
+      type="button"
+      aria-label="Switch to light theme"
+      data-theme-value="light"
+    >
+      <i class="iconfont icon-sun"></i>
+    </button>
+    <button
+      class="size-[32px] flex items-center justify-center"
+      type="button"
+      aria-label="Switch to system theme"
+      data-theme-value="system"
+    >
+      <i class="iconfont icon-computer"></i>
+    </button>
+    <button
+      class="size-[32px] flex items-center justify-center"
+      type="button"
+      aria-label="Switch to dark theme"
+      data-theme-value="dark"
+    >
+      <i class="iconfont icon-moon"></i>
+    </button>
+  </div>
+</div>
+
+<script>
+  import { changePageTheme, getLocalTheme, getSystemTheme, setLocalTheme } from '@/utils/theme'
+
+  const POSITIONS: Record<string, number> = { light: 4, system: 36, dark: 68 }
+
+  function applyTheme(theme: string) {
+    setLocalTheme(theme)
+    if (theme === 'system') {
+      changePageTheme(getSystemTheme())
+    } else {
+      changePageTheme(theme)
+    }
+    document.querySelectorAll<HTMLElement>('.theme-switch-thumb').forEach((thumb) => {
+      thumb.style.transform = `translateX(${POSITIONS[theme] ?? 36}px)`
+    })
+  }
+
+  function initThemeSwitch() {
+    document.querySelectorAll<HTMLElement>('.theme-switch').forEach((root) => {
+      if (root.dataset.bound === 'true') return
+      root.dataset.bound = 'true'
+      root.querySelectorAll<HTMLButtonElement>('[data-theme-value]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const value = btn.dataset.themeValue
+          if (value) applyTheme(value)
+        })
+      })
+    })
+    applyTheme(getLocalTheme())
+  }
+
+  const w = window as any
+  if (!w.__themeMediaBound) {
+    w.__themeMediaBound = true
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+      if (getLocalTheme() === 'system') {
+        changePageTheme(event.matches ? 'dark' : 'light')
+      }
+    })
+  }
+
+  document.addEventListener('astro:page-load', initThemeSwitch)
+  initThemeSwitch()
+</script>

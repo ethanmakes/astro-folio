@@ -19,7 +19,7 @@ const { title, description, image, mdTitle, mdDescription, mdSlug } = Astro.prop
 
 <Layout title={title} description={description} image={image}>
   <Header title={mdTitle} description={mdDescription} slug={mdSlug} />
-  <main class="relative z-1 pt-16 min-h-main bg-primary">
+  <main class="relative z-1 pt-16 lg:pt-20 min-h-main bg-primary">
     <HeadGradient />
     <div class="page-transition-fade">
       <slot />
