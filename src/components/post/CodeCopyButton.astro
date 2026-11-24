@@ -1,7 +1,7 @@
 ---
 // 代码块复制按钮：由 MarkdownLayout 引入，脚本为正文每个 .code-block 注入一个
 // 右上角复制按钮。桌面（hover + fine pointer）默认隐藏，hover / focus-within
-// 时淡入；触屏常显。点击走 navigator.clipboard，成功后就地显示「已复制」。
+// 时淡入；触屏常显。点击走 navigator.clipboard，成功后就地显示「copied」。
 ---
 
 <style is:global>
@@ -85,18 +85,18 @@
       const btn = document.createElement('button')
       btn.type = 'button'
       btn.className = 'code-copy-btn'
-      btn.textContent = '复制'
-      btn.setAttribute('aria-label', '复制代码')
+      btn.textContent = 'copy'
+      btn.setAttribute('aria-label', 'copy code')
 
       let timer: number | undefined
       btn.addEventListener('click', async () => {
         const ok = await copyText(code.textContent ?? '')
         if (!ok) return
-        btn.textContent = '已复制'
+        btn.textContent = 'copied'
         btn.classList.add('is-copied')
         window.clearTimeout(timer)
         timer = window.setTimeout(() => {
-          btn.textContent = '复制'
+          btn.textContent = 'copy'
           btn.classList.remove('is-copied')
         }, REVERT_MS)
       })
