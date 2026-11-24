@@ -2,9 +2,9 @@
   import chroma from 'chroma-js'
   import { color as themeColor } from '@/config.json'
 
-  function pickRandomAccent() {
-    const seed = (Math.random() * themeColor.accent.length) | 0
-    return themeColor.accent[seed]
+  // 全站固定强调色（蓝灰）：config.json 的 accent 只保留一组，不再随机抽取。
+  function getAccent() {
+    return themeColor.accent[0]
   }
 
   function getRgbVal(color: chroma.Color) {
@@ -12,7 +12,7 @@
   }
 
   function injectColor() {
-    const accentColor = pickRandomAccent()
+    const accentColor = getAccent()
 
     const rootBgColor = {
       light: chroma.mix('rgb(250,250,250)', accentColor.light, 0.05, 'rgb'),
