@@ -4,6 +4,7 @@ import { HeadGradient } from '@/components/head-gradient'
 import Footer from '@/components/footer/Footer.astro'
 import Header from '@/components/header/Header.astro'
 import ReadingProgressBar from '@/components/post/ReadingProgressBar.astro'
+import CodeCopyButton from '@/components/post/CodeCopyButton.astro'
 import 'katex/dist/katex.min.css'
 
 interface Props {
@@ -20,6 +21,7 @@ const { title, description, image, mdTitle, mdDescription } = Astro.props
 <Layout title={title} description={description} image={image}>
   <Header title={mdTitle} description={mdDescription} />
   <ReadingProgressBar />
+  <CodeCopyButton />
   <main class="relative z-1 pt-16 lg:pt-20 min-h-main bg-primary">
     <HeadGradient />
     <div class="page-transition-fade">
