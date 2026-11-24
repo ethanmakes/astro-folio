@@ -38,7 +38,7 @@ const { title, description, image } = Astro.props
     <BackToTopFAB />
     <script>
       import { toast } from '@/scripts/toast'
-      ;(window as any).toast = toast
+      ;window.toast = toast
     </script>
   </body>
 </html>

@@ -33,7 +33,7 @@
     updateProgress()
   }
 
-  const w = window as any
+  const w = window
   if (!w.__readingProgressBound) {
     w.__readingProgressBound = true
     onScrollStateChange(updateProgress)

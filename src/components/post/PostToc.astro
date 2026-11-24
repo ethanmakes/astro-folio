@@ -98,7 +98,7 @@ const { headings } = Astro.props
     computeActive()
   }
 
-  const w = window as any
+  const w = window
   if (!w.__tocScrollBound) {
     w.__tocScrollBound = true
     onScrollStateChange(computeActive)

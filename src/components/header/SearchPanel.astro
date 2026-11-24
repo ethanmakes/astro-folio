@@ -459,9 +459,9 @@
     input?.focus()
   }
 
-  ;(window as any).__openSearch = openSearch
+  ;window.__openSearch = openSearch
 
-  const w = window as any
+  const w = window
   if (!w.__searchHotkeyBound) {
     w.__searchHotkeyBound = true
     window.addEventListener('keydown', (event) => {

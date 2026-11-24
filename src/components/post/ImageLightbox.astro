@@ -139,9 +139,9 @@
   }
 
   function getState(): LbState {
-    const w = window as any
+    const w = window
     if (!w.__lightboxState) w.__lightboxState = { items: [], index: 0 }
-    return w.__lightboxState as LbState
+    return w.__lightboxState
   }
 
   function collectImages(): { src: string; alt: string }[] {
@@ -214,7 +214,7 @@
     lb.querySelector('.lb-next')?.addEventListener('click', () => step(1))
   }
 
-  const w = window as any
+  const w = window
   if (!w.__lightboxGlobalBound) {
     w.__lightboxGlobalBound = true
 

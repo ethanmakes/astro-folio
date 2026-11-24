@@ -71,7 +71,7 @@
     applyTheme(getLocalTheme())
   }
 
-  const w = window as any
+  const w = window
   if (!w.__themeMediaBound) {
     w.__themeMediaBound = true
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {

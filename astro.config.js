@@ -16,11 +16,17 @@ import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 
-// GitHub Pages 项目页部署：站点根为 ethanmakes.github.io，主题挂在 /astro-folio 子路径下。
-// site 只写源（origin），子路径由 base 承担；config.json 的 site.url 是含子路径的完整地址，
-// 两者不要混用（Astro 的 site 配置若再带路径会与 base 重复拼接）。
-const SITE_ORIGIN = 'https://ethanmakes.github.io'
-const BASE = '/astro-folio'
+// 站点地址的唯一事实源是 src/config.json 的 site.url（含子路径的完整地址）。
+// 这里用 URL 拆分：origin 喂给 site，pathname 喂给 base——Astro 的 site 若再带路径
+// 会与 base 重复拼接，所以必须拆开。更换部署地址只需改 config.json 的 site.url
+// 一处：部署到根路径就写不带子路径的地址，base 会自动变为 '/'。
+import { readFileSync } from 'node:fs'
+const { site: siteConfig } = JSON.parse(
+  readFileSync(new URL('./src/config.json', import.meta.url), 'utf-8'),
+)
+const siteUrl = new URL(siteConfig.url)
+const SITE_ORIGIN = siteUrl.origin
+const BASE = siteUrl.pathname.replace(/\/+$/, '') || '/'
 
 // https://astro.build/config
 export default defineConfig({

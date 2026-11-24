@@ -123,7 +123,7 @@
     if (!next || !list.contains(next)) hide(list)
   }
 
-  const flags = window as unknown as { __postCardHoverBound?: boolean }
+  const flags = window
   if (!flags.__postCardHoverBound) {
     flags.__postCardHoverBound = true
     document.addEventListener('mouseover', onOver)
