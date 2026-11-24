@@ -17,7 +17,7 @@ Folio 使用 font-class 的方式引用图标。图标主要来源于 [Remix Ico
 {
   "name": "Github",
   "icon": "icon-github",
-  "url": "https://github.com/lee-citizen/astro-folio"
+  "url": "https://github.com/ethanmakes/astro-folio"
 }
 ```
 

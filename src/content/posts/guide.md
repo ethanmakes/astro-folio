@@ -31,7 +31,7 @@ Folio 是一款 Astro 博客主题，追求简洁与快速。它基于上游主�
 ### 安装
 
 ```sh
-git clone https://github.com/lee-citizen/astro-folio.git
+git clone https://github.com/ethanmakes/astro-folio.git
 cd astro-folio
 pnpm install
 ```
