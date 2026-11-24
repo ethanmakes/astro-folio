@@ -1,7 +1,7 @@
 ---
 // 替代原 React 版 ActionAside：分享/赞赏改原生 <dialog>，复制链接走自写 toast。
 // 二维码：原 qrcode.react 改为构建期用 qrcode 生成静态 SVG（零客户端 JS）。
-// 二维码保留方式（构建期静态生成 vs 砍掉）尚未拍板，暂以静态生成保功能。
+// 【Ethan 已确认 2026-11-24】正式方案：构建期 qrcode@1.5.4 生成静态 SVG。
 import { sponsor, site} from '@/config.json'
 import QRCode from 'qrcode'
 
