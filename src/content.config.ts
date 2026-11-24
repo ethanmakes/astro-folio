@@ -14,6 +14,10 @@ const posts = defineCollection({
     cover: z.string().optional(),
     category: z.string().default('未分类'),
     tags: z.array(z.string()).default([]),
+    // 系列：同 series 值的文章归为一个系列（≥2 篇时文末渲染系列框）；
+    // seriesOrder 控制系列内排序，未填的按日期排在已填之后。
+    series: z.string().optional(),
+    seriesOrder: z.number().optional(),
     comments: z.boolean().default(true),
     draft: z.boolean().default(false),
     sticky: z.number().default(0),

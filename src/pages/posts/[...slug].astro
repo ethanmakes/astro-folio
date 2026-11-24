@@ -12,6 +12,7 @@ import PostArchiveInfo from '@/components/post/PostArchiveInfo.astro'
 import ReadingProgress from '@/components/post/ReadingProgress.astro'
 import Outdate from '@/components/post/Outdate.astro'
 import PostNav from '@/components/post/PostNav.astro'
+import PostSeries from '@/components/post/PostSeries.astro'
 import { Comments } from '@/components/comment'
 import ActionAside from '@/components/post/ActionAside.astro'
 import PostCopyright from '@/components/post/PostCopyright.astro'
@@ -19,12 +20,34 @@ import PostCopyright from '@/components/post/PostCopyright.astro'
 export const getStaticPaths = (async () => {
   const sortedPosts = await getSortedPosts()
 
+  // 同系列文章列表：优先 seriesOrder 升序，未填的按日期排在已填之后；
+  // 系列不足 2 篇时返回空数组（不渲染系列框）。必须定义在 getStaticPaths
+  // 内部——Astro 预渲染时外部辅助函数不可用。
+  function getSeriesPosts(
+    all: CollectionEntry<'posts'>[],
+    current: CollectionEntry<'posts'>,
+  ): CollectionEntry<'posts'>[] {
+    const series = current.data.series
+    if (!series) return []
+    const siblings = all.filter((p) => p.data.series === series)
+    if (siblings.length < 2) return []
+    return siblings.sort((a, b) => {
+      const ao = a.data.seriesOrder
+      const bo = b.data.seriesOrder
+      if (ao != null && bo != null) return ao - bo || a.data.date.valueOf() - b.data.date.valueOf()
+      if (ao != null) return -1
+      if (bo != null) return 1
+      return a.data.date.valueOf() - b.data.date.valueOf()
+    })
+  }
+
   return sortedPosts.map((post, index) => ({
     params: { slug: post.id },
     props: {
       current: post,
       prev: index > 0 ? sortedPosts[index - 1] : undefined,
       next: index < sortedPosts.length - 1 ? sortedPosts[index + 1] : undefined,
+      seriesPosts: getSeriesPosts(sortedPosts, post),
     },
   }))
 }) satisfies GetStaticPaths
@@ -33,9 +56,10 @@ interface Props {
   current: CollectionEntry<'posts'>
   prev?: CollectionEntry<'posts'>
   next?: CollectionEntry<'posts'>
+  seriesPosts: CollectionEntry<'posts'>[]
 }
 
-const { current, prev, next } = Astro.props
+const { current, prev, next, seriesPosts } = Astro.props
 
 const { headings, Content, remarkPluginFrontmatter } = await render(current)
 
@@ -104,6 +128,11 @@ const lastMod = current.data.lastMod || current.data.date
     <div data-pagefind-ignore>
       <section class="space-y-6">
         <PostCopyright title={current.data.title} slug={mdSlug} lastMod={lastMod} />
+        {
+          seriesPosts.length >= 2 && (
+            <PostSeries name={current.data.series!} posts={seriesPosts} currentId={current.id} />
+          )
+        }
         <PostNav prev={prev} next={next} />
         {current.data.comments && <Comments />}
       </section>
