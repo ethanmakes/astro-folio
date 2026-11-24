@@ -72,6 +72,8 @@ astro-folio 是在 astro-gyoza 基础上的一次现代化重构：外观与功�
 
 本项目 fork 自 [lxchapu](https://github.com/lxchapu) 的 [astro-gyoza](https://github.com/lxchapu/astro-gyoza)，设计与原始实现归原作者所有，特此致谢。
 
+本主题由 Ethan 与 AI 搭子 Muse 共同重构与设计。
+
 ## 📄 License
 
 [MIT](./LICENSE) — 与原项目保持一致。原项目版权归 lxchapu 所有，详见 LICENSE 文件。
