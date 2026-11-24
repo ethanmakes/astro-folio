@@ -1,13 +1,17 @@
 import type { APIRoute } from 'astro'
 
+// import.meta.env.SITE 只有源（origin），sitemap 地址要再拼部署 base 子路径；
+// 本版本 BASE_URL 为 '/astro-folio'（无尾斜杠），先归一化再拼接。
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 const robotsTxt = `
 User-agent: *
 Allow: /
 
-Disallow: /_astro/
-Disallow: /fonts/
+Disallow: ${base}/_astro/
+Disallow: ${base}/fonts/
 
-Sitemap: ${new URL('sitemap-index.xml', import.meta.env.SITE).href}
+Sitemap: ${import.meta.env.SITE}${base}/sitemap-index.xml
 `.trim()
 
 export const GET: APIRoute = () => {

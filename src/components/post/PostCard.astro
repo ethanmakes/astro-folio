@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content'
 import { render } from 'astro:content'
 import PostMetaInfo from './PostMetaInfo.astro'
+import { withBase } from '@/utils/url'
 
 interface Props {
   entry: CollectionEntry<'posts'>
@@ -12,7 +13,7 @@ const { entry } = Astro.props
 const { remarkPluginFrontmatter } = await render(entry)
 ---
 
-<a class="post-card block relative py-8 focus-visible:outline-0" href={`/posts/${entry.id}`}>
+<a class="post-card block relative py-8 focus-visible:outline-0" href={withBase(`/posts/${entry.id}`)}>
   <h2 class="relative text-2xl font-bold">
     {entry.data.title}
     {
@@ -26,7 +27,7 @@ const { remarkPluginFrontmatter } = await render(entry)
       entry.data.cover && (
         <img
           class="float-right ml-3 mb-2 size-[80px] rounded-md object-cover select-none"
-          src={entry.data.cover}
+          src={withBase(entry.data.cover)}
           alt={entry.data.title}
           loading="lazy"
         />

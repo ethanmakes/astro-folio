@@ -5,6 +5,7 @@ import {
   ThemeLoader,
   AccentColorInjector,
   PrintVersion,
+  FontFace,
 } from '@/components/head'
 import BackToTopFAB from '@/components/BackToTopFAB.astro'
 import { ClientRouter } from 'astro:transitions'
@@ -24,6 +25,7 @@ const { title, description, image } = Astro.props
 <html lang={site.lang}>
   <head>
     <CommonHead title={title} description={description} image={image} />
+    <FontFace />
     <WebAnalytics />
     <ThemeLoader />
     <AccentColorInjector />

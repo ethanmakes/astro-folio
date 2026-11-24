@@ -3,6 +3,7 @@
 // 二维码：原 qrcode.react 改为构建期用 qrcode 生成静态 SVG（零客户端 JS）。
 // 【Ethan 已确认 2026-11-24】正式方案：构建期 qrcode@1.5.4 生成静态 SVG。
 import { sponsor, site} from '@/config.json'
+import { withBase } from '@/utils/url'
 import QRCode from 'qrcode'
 
 interface Props {
@@ -12,7 +13,8 @@ slug: string
 
 const { title, slug} = Astro.props
 
-const url = new URL(slug, site.url).href
+// slug 是根相对语义，先补 base 再拼站点完整地址，否则子路径会被 new URL 的绝对路径吞掉
+const url = new URL(withBase(slug), site.url).href
 const text = `嘿，我发现了一片宝藏文章「${title}」哩，快来看看吧！`
 const qrSvg = await QRCode.toString(url, { type: 'svg', width: 180, margin: 0})
 ---

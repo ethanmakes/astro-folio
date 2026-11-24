@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content'
+import { withBase } from '@/utils/url'
 
 interface Props {
   name: string
@@ -31,7 +32,7 @@ const { name, posts, currentId } = Astro.props
                 <span class="ml-1.5 text-xs font-normal text-secondary">（本篇）</span>
               </span>
             ) : (
-              <a class="hover:text-accent" href={`/posts/${post.id}`}>
+              <a class="hover:text-accent" href={withBase(`/posts/${post.id}`)}>
                 {post.data.title}
               </a>
             )}

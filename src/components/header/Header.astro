@@ -12,6 +12,7 @@
 import { menus, author, site } from '@/config.json'
 import SearchPanel from './SearchPanel.astro'
 import ThemeSwitch from './ThemeSwitch.astro'
+import { withBase } from '@/utils/url'
 
 interface Props {
   title?: string
@@ -21,7 +22,15 @@ interface Props {
 const { title = '', description = '' } = Astro.props
 
 const hasMeta = title !== '' && description !== ''
-const pathName = Astro.url.pathname === '/' ? '/' : Astro.url.pathname.replace(/\/$/, '')
+// Astro.url.pathname 含部署 base（如 /astro-folio/archives），而 config 的 menu.link
+// 是根相对语义（/archives）：比较前先剥掉 base 前缀，否则子路径下当前页高亮永远失效。
+const basePrefix = import.meta.env.BASE_URL.replace(/\/$/, '')
+const rawPath = Astro.url.pathname
+const strippedPath =
+  basePrefix && (rawPath === basePrefix || rawPath.startsWith(`${basePrefix}/`))
+    ? rawPath.slice(basePrefix.length) || '/'
+    : rawPath
+const pathName = strippedPath === '/' ? '/' : strippedPath.replace(/\/$/, '')
 
 const menuItems = menus.map((menu) => ({ ...menu, isActive: pathName === menu.link }))
 
@@ -54,18 +63,18 @@ const menuBgClasses =
       >
         <i class="iconfont icon-menu"></i>
       </button>
-      <a class="hidden md:block lg:hidden" href="/" title="Nav to home">
+      <a class="hidden md:block lg:hidden" href={withBase('/')} title="Nav to home">
         <img
           class="size-[40px] select-none object-cover rounded-2xl"
-          src={author.avatar}
+          src={withBase(author.avatar)}
           alt="Site owner avatar"
         />
       </a>
       {/* lg 品牌区：logo + 放大加粗的站点字标 */}
-      <a class="hidden lg:flex items-center gap-3 shrink-0" href="/" title="Nav to home">
+      <a class="hidden lg:flex items-center gap-3 shrink-0" href={withBase('/')} title="Nav to home">
         <img
           class="size-[44px] select-none object-cover rounded-2xl"
-          src={author.avatar}
+          src={withBase(author.avatar)}
           alt="Site owner avatar"
         />
         <span class="text-[21px] font-bold leading-none tracking-tight">{site.title}</span>
@@ -75,12 +84,12 @@ const menuBgClasses =
       <a
         id="logo-mobile"
         class="md:hidden block transition-opacity duration-300"
-        href="/"
+        href={withBase('/')}
         title="Nav to home"
       >
         <img
           class="size-[40px] select-none object-cover rounded-2xl"
-          src={author.avatar}
+          src={withBase(author.avatar)}
           alt="Site owner avatar"
         />
       </a>
@@ -102,7 +111,7 @@ const menuBgClasses =
                     'relative block px-4 py-1.5',
                     menu.isActive ? 'text-accent' : 'hover:text-accent',
                   ]}
-                  href={menu.link}
+                  href={withBase(menu.link)}
                 >
                   <div class="flex space-x-2">
                     {menu.isActive && <i class:list={['iconfont menu-icon-in', menu.icon]} />}
@@ -126,7 +135,7 @@ const menuBgClasses =
                     'relative flex items-center gap-2 px-1 text-[15px]',
                     menu.isActive ? 'text-accent font-semibold' : 'hover:text-accent',
                   ]}
-                  href={menu.link}
+                  href={withBase(menu.link)}
                 >
                   {menu.isActive && <i class:list={['iconfont menu-icon-in', menu.icon]} />}
                   <span>{menu.name}</span>
@@ -192,7 +201,7 @@ const menuBgClasses =
           class="drawer-item opacity-0 -translate-x-full transition-all duration-200 ease-out"
           style={`transition-delay: ${0.1 + i * 0.1}s`}
         >
-          <a class="drawer-link inline-flex p-2 space-x-4" href={menu.link}>
+          <a class="drawer-link inline-flex p-2 space-x-4" href={withBase(menu.link)}>
             <i class:list={['iconfont', menu.icon]} />
             <span>{menu.name}</span>
           </a>

@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import { withBase } from '@/utils/url'
 
 const projects = await getCollection('projects')
 ---
@@ -13,7 +14,7 @@ const projects = await getCollection('projects')
             <div class="aspect-video overflow-hidden">
               <img
                 class="size-full object-cover transition-transform group-hover:scale-110"
-                src={project.data.image}
+                src={withBase(project.data.image)}
                 alt={`Project cover: ${project.data.title}`}
                 loading="lazy"
               />

@@ -3,6 +3,7 @@
 // 复制链接走自写 toast（原 react-toastify 平替）。
 import { author, site } from '@/config.json'
 import { getFormattedDateTime } from '@/utils/date'
+import { withBase } from '@/utils/url'
 
 interface Props {
   title: string
@@ -12,7 +13,8 @@ interface Props {
 
 const { title, slug, lastMod } = Astro.props
 
-const url = new URL(slug, site.url).href
+// slug 是根相对语义，先补 base 再拼站点完整地址，否则子路径会被 new URL 的绝对路径吞掉
+const url = new URL(withBase(slug), site.url).href
 const lastModStr = getFormattedDateTime(lastMod)
 ---
 

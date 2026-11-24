@@ -1,0 +1,32 @@
+---
+// 全站 @font-face（Atkinson + iconfont）：字体文件在 public/fonts 下，URL 必须带部署 base 前缀。
+// 写死在纯 CSS 里时，构建期 Vite 会自动补 base、dev 期不会（dev 下字体 404），
+// 故在此按 withBase() 动态生成，保证 dev 与 build 行为一致。
+import { withBase } from '@/utils/url'
+
+const fontCss = `@font-face {
+  font-family: 'Atkinson';
+  src: url('${withBase('/fonts/atkinson-regular.woff')}') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Atkinson';
+  src: url('${withBase('/fonts/atkinson-bold.woff')}') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'iconfont';
+  /* Project id 4528205 */
+  src:
+    url('${withBase('/fonts/iconfont.woff2')}?t=1716210197380') format('woff2'),
+    url('${withBase('/fonts/iconfont.woff')}?t=1716210197380') format('woff'),
+    url('${withBase('/fonts/iconfont.ttf')}?t=1716210197380') format('truetype');
+}
+`
+---
+
+<style set:html={fontCss}></style>

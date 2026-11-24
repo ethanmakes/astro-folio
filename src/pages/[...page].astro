@@ -8,6 +8,7 @@ import appConfig from '@/config.json'
 import SectionBlock from '@/components/SectionBlock.astro'
 import TagList from '@/components/TagList.astro'
 import CategoryList from '@/components/CategoryList.astro'
+import { withBase } from '@/utils/url'
 import type { CollectionEntry } from 'astro:content'
 import Hero from '@/components/hero/Hero.astro'
 
@@ -41,8 +42,8 @@ const allTags = await getAllTags()
 const allCategories = await getAllCategories()
 
 const getPageUrl = (page: number) => {
-  if (page === 1) return '/'
-  return `/page/${page}`
+  if (page === 1) return withBase('/')
+  return withBase(`/page/${page}`)
 }
 ---
 
@@ -70,7 +71,7 @@ const getPageUrl = (page: number) => {
             {
               allTags.length > hotTags.length && (
                 <div class="mt-2 text-right">
-                  <a class="text-sm text-secondary hover:text-accent" href="/tags">
+                  <a class="text-sm text-secondary hover:text-accent" href={withBase('/tags')}>
                     更多标签 <i class="iconfont icon-arrow-right" />
                   </a>
                 </div>

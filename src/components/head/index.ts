@@ -1,5 +1,6 @@
 export { default as AccentColorInjector } from './AccentColorInjector.astro'
 export { default as CommonHead } from './CommonHead.astro'
+export { default as FontFace } from './FontFace.astro'
 export { default as PrintVersion } from './PrintVersion.astro'
 export { default as ThemeLoader } from './ThemeLoader.astro'
 export { default as WebAnalytics } from './WebAnalytics.astro'

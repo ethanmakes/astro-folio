@@ -3,6 +3,7 @@
 // 粗细双线、栏目行。内容全部取自 config 与文章集合，不写死。
 import { hero } from '@/config.json'
 import SocialList from './SocialList.astro'
+import { withBase } from '@/utils/url'
 import { getSortedPosts, getAllPostsWordCount, getAllCategories } from '@/utils/content'
 
 const posts = await getSortedPosts()
@@ -53,7 +54,7 @@ const wordCountStr = wordCount.toLocaleString('en-US')
   <nav aria-label="文章分类" class="mt-4 flex flex-wrap items-baseline gap-x-7 gap-y-2">
     {
       categories.map((category) => (
-        <a class="masthead-cat-link text-sm transition-colors" href={`/categories/${category.slug}`}>
+        <a class="masthead-cat-link text-sm transition-colors" href={withBase(`/categories/${category.slug}`)}>
           {category.name}
           <span class="ml-1 text-xs text-secondary tabular-nums">{category.count}</span>
         </a>

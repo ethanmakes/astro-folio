@@ -59,10 +59,19 @@
   const ICON_DEV = `<svg xmlns="http://www.w3.org/2000/svg" width="2em" viewBox="0 0 24 24"><path fill="currentColor" d="M4 20v-6a8 8 0 1 1 16 0v6h1v2H3v-2zm2 0h12v-6a6 6 0 0 0-12 0zm5-18h2v3h-2zm8.778 2.808l1.414 1.414l-2.12 2.121l-1.415-1.414zM2.808 6.222l1.414-1.414l2.121 2.12L4.93 8.344zM7 14a5 5 0 0 1 5-5v2a3 3 0 0 0-3 3z"/></svg>`
   const ICON_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="2em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 11v2l-5.327 6H11v2H3v-2l5.326-6H3v-2zm10-8v2l-5.327 6H21v2h-8v-2l5.326-6H13V3z"/></svg>`
 
+  // pagefind 索引生成在站点根（部署时即 base 子路径下），脚本与结果地址都要带 base 前缀。
+  // 注意：本版本 import.meta.env.BASE_URL 为 '/astro-folio'（无尾斜杠），拼接前先归一化。
+  const BASE_PREFIX = import.meta.env.BASE_URL.replace(/\/$/, '')
+  function withBasePrefix(url: string) {
+    if (!url.startsWith('/') || !BASE_PREFIX) return url
+    if (url === BASE_PREFIX || url.startsWith(`${BASE_PREFIX}/`)) return url
+    return `${BASE_PREFIX}${url}`
+  }
+
   let pagefind: any = null
   async function loadPagefind() {
     if (!pagefind) {
-      const url = '/pagefind/pagefind.js'
+      const url = `${BASE_PREFIX}/pagefind/pagefind.js`
       pagefind = await import(/* @vite-ignore */ url)
     }
   }
@@ -108,7 +117,7 @@
       }
       const items = results
         .map(
-          (item) => `<a href="${item.url}" class="hover:bg-accent/10 rounded block px-3 py-2" data-search-result>
+          (item) => `<a href="${withBasePrefix(item.url)}" class="hover:bg-accent/10 rounded block px-3 py-2" data-search-result>
             <div class="font-semibold">${item.meta.title}</div>
             <p class="text-sm">${item.excerpt}</p>
           </a>`,

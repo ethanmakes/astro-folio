@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content'
 import { getShortDate } from '@/utils/date'
+import { withBase } from '@/utils/url'
 
 interface Props {
   posts: CollectionEntry<'posts'>[]
@@ -46,7 +47,7 @@ const groupedPosts = posts.reduce<
               </span>
               <a
                 class="hover:text-accent/80 hover:underline underline-offset-2"
-                href={`/posts/${post.id}`}
+                href={withBase(`/posts/${post.id}`)}
               >
                 {post.data.title}
               </a>
