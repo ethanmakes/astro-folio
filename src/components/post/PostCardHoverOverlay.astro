@@ -1,23 +1,134 @@
 ---
-// 替代原 React 版 PostCardHoverOverlay：纯 CSS :hover/:focus 覆盖层。
-// 注：原版 framer-motion layoutId 的跨卡片滑动动画纯 CSS 无法 1:1 复刻，
-// 平替为单卡淡入/缩放，视觉终态一致（REFORM-PLAN 记录项）。
+// 复刻原 React 版 PostCardHoverOverlay（framer-motion layoutId）的跨卡片滑动浮层：
+// 整个文章列表共用一个高亮层，hover/focus 某张卡片时以 FLIP 式过渡（transform/width/height）
+// 滑到该卡片的位置与尺寸，移出列表时淡出。视觉终态与原版一致：
+// bg-accent/10、rounded-lg、上下内缩 16px（inset-y-4）、左右外扩 16px（-inset-x-4），
+// 出现/消失带 0.95 微缩放（原版 initial/exit）。
+// 仅在支持 hover 的设备（hover: hover + pointer: fine）启用，触屏不触发。
+// 事件用 document 级委托并以 window 标志防重复绑定，View Transitions 切页后无需重绑。
 ---
 
-<div class="post-card-overlay absolute inset-y-4 -inset-x-4 -z-1 bg-accent/10 rounded-lg"></div>
+<div class="post-card-hover-overlay bg-accent/10 rounded-lg" aria-hidden="true"></div>
 
 <style>
-  .post-card-overlay {
+  .post-card-hover-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 0;
     opacity: 0;
-    scale: 0.95;
-    transition:
-      opacity 0.2s ease,
-      scale 0.2s ease;
     pointer-events: none;
-  }
-  a:hover > .post-card-overlay,
-  a:focus > .post-card-overlay {
-    opacity: 1;
-    scale: 1;
+    transform-origin: center;
+    transition:
+      transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      height 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.2s ease;
   }
 </style>
+
+<script>
+  const HOVER_MQ = '(hover: hover) and (pointer: fine)'
+
+  function overlayOf(list: HTMLElement) {
+    return list.querySelector<HTMLElement>('.post-card-hover-overlay')
+  }
+
+  // 目标几何：相对列表容器的位置；上下内缩 16px、左右外扩 16px（原版 inset-y-4 / -inset-x-4）
+  function targetRect(list: HTMLElement, card: HTMLElement) {
+    const lr = list.getBoundingClientRect()
+    const cr = card.getBoundingClientRect()
+    return {
+      x: cr.left - lr.left - 16,
+      y: cr.top - lr.top + 16,
+      w: cr.width + 32,
+      h: cr.height - 32,
+    }
+  }
+
+  function show(list: HTMLElement, card: HTMLElement) {
+    if (!window.matchMedia(HOVER_MQ).matches) return
+    const el = overlayOf(list)
+    if (!el) return
+    const href = card.getAttribute('href') ?? ''
+    const wasHidden = el.dataset.state !== 'visible'
+    if (!wasHidden && el.dataset.card === href) return
+    const { x, y, w, h } = targetRect(list, card)
+    el.dataset.state = 'visible'
+    el.dataset.card = href
+    if (wasHidden) {
+      // 首次出现：无过渡地落位，再淡入 + 由 0.95 微缩放长大（对应原版 initial → animate）
+      el.style.transition = 'none'
+      el.style.width = `${w}px`
+      el.style.height = `${h}px`
+      el.style.transform = `translate(${x}px, ${y}px) scale(0.95)`
+      el.style.opacity = '0'
+      void el.offsetWidth
+      el.style.transition = ''
+    }
+    el.style.width = `${w}px`
+    el.style.height = `${h}px`
+    el.style.transform = `translate(${x}px, ${y}px) scale(1)`
+    el.style.opacity = '1'
+  }
+
+  function hide(list: HTMLElement) {
+    const el = overlayOf(list)
+    if (!el || el.dataset.state !== 'visible') return
+    el.dataset.state = 'hidden'
+    el.dataset.card = ''
+    el.style.opacity = '0'
+    // 淡出时微缩放回 0.95（对应原版 exit）
+    el.style.transform = el.style.transform.replace(/scale\([\d.]+\)/, 'scale(0.95)')
+  }
+
+  function cardFrom(node: EventTarget | null) {
+    const el = node instanceof Element ? node : null
+    return el?.closest<HTMLElement>('a.post-card') ?? null
+  }
+
+  function listOf(card: HTMLElement) {
+    return card.closest<HTMLElement>('[data-post-list]')
+  }
+
+  function onOver(e: MouseEvent) {
+    const card = cardFrom(e.target)
+    if (!card) return
+    const list = listOf(card)
+    if (list) show(list, card)
+  }
+
+  function onOut(e: MouseEvent) {
+    const card = cardFrom(e.target)
+    if (!card) return
+    const list = listOf(card)
+    if (!list) return
+    const next = e.relatedTarget instanceof Node ? e.relatedTarget : null
+    if (!next || !list.contains(next)) hide(list)
+  }
+
+  function onFocusIn(e: FocusEvent) {
+    const card = cardFrom(e.target)
+    if (!card) return
+    const list = listOf(card)
+    if (list) show(list, card)
+  }
+
+  function onFocusOut(e: FocusEvent) {
+    const card = cardFrom(e.target)
+    if (!card) return
+    const list = listOf(card)
+    if (!list) return
+    const next = e.relatedTarget instanceof Node ? e.relatedTarget : null
+    if (!next || !list.contains(next)) hide(list)
+  }
+
+  const flags = window as unknown as { __postCardHoverBound?: boolean }
+  if (!flags.__postCardHoverBound) {
+    flags.__postCardHoverBound = true
+    document.addEventListener('mouseover', onOver)
+    document.addEventListener('mouseout', onOut)
+    document.addEventListener('focusin', onFocusIn)
+    document.addEventListener('focusout', onFocusOut)
+  }
+</script>

@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content'
 import PostCard from './PostCard.astro'
+import PostCardHoverOverlay from './PostCardHoverOverlay.astro'
 
 interface Props {
   posts: CollectionEntry<'posts'>[]
@@ -9,7 +10,8 @@ interface Props {
 const { posts } = Astro.props
 ---
 
-<div>
+<div class="relative" data-post-list>
+  <PostCardHoverOverlay />
   <ul class="-my-4">
     {
       posts.map((post) => (
