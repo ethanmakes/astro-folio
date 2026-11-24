@@ -5,13 +5,13 @@
     "description": "这是一个使用 Astro 开发的博客主题。",
     "keywords": "Folio,blog,Astro,theme,博客主题",
     "lang": "zh-CN",
-    "favicon": "/favicon.ico",
+    "favicon": "/logo.svg",
     "appleTouchIcon": "/apple-touch-icon.png"
   },
   "author": {
     "name": "Folio",
     "twitterId": "",
-    "avatar": "/avatar.svg"
+    "avatar": "/logo.svg"
   },
   "hero": {
     "name": "Folio",
