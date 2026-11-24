@@ -6,7 +6,8 @@
 // - 桌面菜单：md 保留背景辉光胶囊（顶部 60px 内显示，滚动后背景消失）；
 //   lg 改为通栏顶栏：品牌字标居左、菜单横排（当前页 accent 色 + 加粗 + 底部实色下划线）
 // - 主题切换从页脚移入顶栏右侧（lg 显示）与移动端抽屉顶部，全站只此一处逻辑
-// - 文章页滚动 ≥60px 后菜单/logo 与文章 meta 互换；滚动 ≥400px 且上滑时顶部浮动菜单出现
+// - 文章页顶栏二态（方向感知 + 累计 8px 迟滞防抖）：顶部与上滑时为品牌+菜单常态，
+//   下滑越过 60px 后与文章 meta 互换；旧版上滑浮动胶囊菜单已删除，全站只剩这一套导航逻辑
 // - 移动端：抽屉菜单（条目 stagger）、meta 出现时 logo 淡出
 import { menus, author, site } from '@/config.json'
 import SearchPanel from './SearchPanel.astro'
@@ -166,41 +167,6 @@ const menuBgClasses =
   </div>
 </header>
 
-{/* 文章页上滑浮动菜单（原 RootPortal + AccessibleMenu） */}
-<div
-  id="accessible-menu"
-  class="hidden md:flex fixed z-10 top-12 inset-x-0 justify-center pointer-events-none opacity-0 -translate-y-5 invisible transition-all duration-300"
->
-  <nav class:list={['header-menu relative rounded-full group pointer-events-auto duration-200', menuBgClasses]}>
-    <div
-      class="header-menu-glow absolute -z-1 -inset-px rounded-full opacity-0 group-hover:opacity-100 duration-500"
-      aria-hidden="true"
-    >
-    </div>
-    <div class="text-sm px-4 flex">
-      {
-        menuItems.map((menu) => (
-          <a
-            class:list={[
-              'relative block px-4 py-1.5',
-              menu.isActive ? 'text-accent' : 'hover:text-accent',
-            ]}
-            href={menu.link}
-          >
-            <div class="flex space-x-2">
-              {menu.isActive && <i class:list={['iconfont menu-icon-in', menu.icon]} />}
-              <span>{menu.name}</span>
-            </div>
-            {menu.isActive && (
-              <div class="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
-            )}
-          </a>
-        ))
-      }
-    </div>
-  </nav>
-</div>
-
 {/* 移动端抽屉（原 radix Dialog + framer-motion，改原生 + CSS 过渡） */}
 <div
   id="drawer-overlay"
@@ -255,8 +221,29 @@ const menuBgClasses =
     'dark:ring-zinc-100/10',
   ]
 
+  // 顶栏二态的迟滞状态挂在 window 上：滚动回调只注册一次且 VT 软导航后脚本会
+  // 重新执行，状态必须跨闭包、跨页面一致，不能用某个闭包内的局部变量。
+  interface HeaderMetaState {
+    meta: boolean
+    minY: number
+    maxY: number
+  }
+
+  function getHeaderMetaState(): HeaderMetaState {
+    const w = window as any
+    if (!w.__headerMetaState) w.__headerMetaState = { meta: false, minY: 0, maxY: 0 }
+    return w.__headerMetaState as HeaderMetaState
+  }
+
+  function resetHeaderMetaState(y: number) {
+    const s = getHeaderMetaState()
+    s.meta = false
+    s.minY = y
+    s.maxY = y
+  }
+
   function applyScrollState() {
-    const { y, direction } = getScrollState()
+    const { y } = getScrollState()
     const header = document.querySelector<HTMLElement>('header[data-has-meta]')
     if (!header) return
     const hasMeta = header.dataset.hasMeta === 'true'
@@ -277,7 +264,28 @@ const menuBgClasses =
       MENU_BG_CLASSES.forEach((c) => menu.classList.toggle(c, y < 60))
     }
 
-    const showMeta = hasMeta && y >= 60
+    // 文章页顶栏二态（方向感知 + 累计 8px 迟滞防抖）：
+    // 顶部（y<60）恒为常态；常态下自最低点累计下滚 ≥8px 且越过 60 → meta 态；
+    // meta 态下自最高点累计上滚 ≥8px → 恢复常态。临界点附近的小幅抖动不触发切换。
+    const hs = getHeaderMetaState()
+    if (!hasMeta || y < 60) {
+      hs.meta = false
+      hs.minY = y
+      hs.maxY = y
+    } else if (!hs.meta) {
+      hs.minY = Math.min(hs.minY, y)
+      if (y - hs.minY >= 8) {
+        hs.meta = true
+        hs.maxY = y
+      }
+    } else {
+      hs.maxY = Math.max(hs.maxY, y)
+      if (hs.maxY - y >= 8) {
+        hs.meta = false
+        hs.minY = y
+      }
+    }
+    const showMeta = hasMeta && hs.meta
 
     const meta = document.getElementById('header-meta')
     if (meta) {
@@ -298,15 +306,6 @@ const menuBgClasses =
       logoMobile.classList.toggle('pointer-events-none', showMeta)
     }
 
-    // 浮动菜单：文章页、滚动 ≥400 且方向向上
-    const acc = document.getElementById('accessible-menu')
-    if (acc) {
-      const show = hasMeta && y >= 400 && direction === 'up'
-      acc.classList.toggle('opacity-0', !show)
-      acc.classList.toggle('-translate-y-5', !show)
-      acc.classList.toggle('pointer-events-none', !show)
-      acc.classList.toggle('invisible', !show)
-    }
   }
 
   function closeDrawer() {
@@ -333,6 +332,8 @@ const menuBgClasses =
 
   function initHeader() {
     startScrollTracking()
+    // 新页面（含 VT 软导航）从常态起步，迟滞极值以当前滚动位置为锚
+    resetHeaderMetaState(getScrollState().y)
     applyScrollState()
 
     // 菜单径向辉光
