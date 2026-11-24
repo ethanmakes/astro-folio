@@ -2,3 +2,8 @@ allowBuilds:
   esbuild: true
   sharp: true
   simple-git-hooks: true
+# Disable pnpm's minimum-release-age supply-chain policy (CI uses pnpm@latest,
+# whose default 24h window rejects freshly published lockfile entries such as
+# devalue@6.0.4 and fails the Pages deploy with
+# ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION).
+minimumReleaseAge: 0
