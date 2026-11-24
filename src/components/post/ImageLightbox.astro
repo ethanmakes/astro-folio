@@ -1,0 +1,242 @@
+---
+// 正文图片灯箱：由 MarkdownLayout 引入。点击正文图片打开全屏灯箱，
+// 深色衬底、图片居中 contain、同篇多图可左右切换，alt 文本作说明。
+// 被 <a> 包裹的图片不劫持，保持原链接行为。
+---
+
+<div id="image-lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="图片查看">
+  <button type="button" class="lb-close" aria-label="关闭">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M6 6l12 12M18 6L6 18"></path>
+    </svg>
+  </button>
+  <button type="button" class="lb-nav lb-prev" aria-label="上一张">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.5 5.5L8 12l6.5 6.5"></path>
+    </svg>
+  </button>
+  <figure class="lb-stage">
+    <img class="lb-img" alt="" />
+    <figcaption class="lb-caption"></figcaption>
+  </figure>
+  <button type="button" class="lb-nav lb-next" aria-label="下一张">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.5 5.5L16 12l-6.5 6.5"></path>
+    </svg>
+  </button>
+</div>
+
+<style is:global>
+  #markdown-wrapper img {
+    cursor: zoom-in;
+  }
+
+  #markdown-wrapper a img {
+    cursor: pointer;
+  }
+
+  #image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(9 9 11 / 0.93);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.25s ease,
+      visibility 0.25s;
+  }
+
+  #image-lightbox.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  #image-lightbox .lb-stage {
+    margin: 0;
+    max-width: min(92vw, 1400px);
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  #image-lightbox .lb-img {
+    max-width: 100%;
+    max-height: calc(92vh - 3rem);
+    object-fit: contain;
+    border-radius: 0.5rem;
+    background-color: transparent;
+    transform: scale(0.97);
+    transition: transform 0.25s ease;
+  }
+
+  #image-lightbox.is-open .lb-img {
+    transform: scale(1);
+  }
+
+  #image-lightbox .lb-caption {
+    color: rgb(228 228 231 / 0.9);
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  #image-lightbox .lb-caption:empty {
+    display: none;
+  }
+
+  #image-lightbox .lb-close,
+  #image-lightbox .lb-nav {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    border: none;
+    background-color: rgb(255 255 255 / 0.1);
+    color: rgb(244 244 245);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  #image-lightbox .lb-close:hover,
+  #image-lightbox .lb-nav:hover {
+    background-color: rgb(255 255 255 / 0.22);
+  }
+
+  #image-lightbox .lb-close {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  #image-lightbox .lb-prev {
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  #image-lightbox .lb-next {
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  #image-lightbox.lb-single .lb-nav {
+    display: none;
+  }
+</style>
+
+<script>
+  interface LbState {
+    items: { src: string; alt: string }[]
+    index: number
+  }
+
+  function getState(): LbState {
+    const w = window as any
+    if (!w.__lightboxState) w.__lightboxState = { items: [], index: 0 }
+    return w.__lightboxState as LbState
+  }
+
+  function collectImages(): { src: string; alt: string }[] {
+    const imgs = document.querySelectorAll<HTMLImageElement>('#markdown-wrapper img')
+    const items: { src: string; alt: string }[] = []
+    imgs.forEach((img) => {
+      if (img.closest('a')) return
+      items.push({ src: img.currentSrc || img.src, alt: img.alt || '' })
+    })
+    return items
+  }
+
+  function render() {
+    const lb = document.getElementById('image-lightbox')
+    if (!lb) return
+    const state = getState()
+    const item = state.items[state.index]
+    if (!item) return
+    const img = lb.querySelector<HTMLImageElement>('.lb-img')
+    const caption = lb.querySelector<HTMLElement>('.lb-caption')
+    if (img) {
+      img.src = item.src
+      img.alt = item.alt
+    }
+    if (caption) caption.textContent = item.alt
+    lb.classList.toggle('lb-single', state.items.length < 2)
+  }
+
+  function openLightbox(clickedSrc: string) {
+    const lb = document.getElementById('image-lightbox')
+    if (!lb) return
+    const state = getState()
+    state.items = collectImages()
+    const idx = state.items.findIndex((it) => it.src === clickedSrc)
+    state.index = idx >= 0 ? idx : 0
+    if (state.items.length === 0) return
+    render()
+    lb.classList.add('is-open')
+    lb.setAttribute('aria-hidden', 'false')
+    document.documentElement.style.overflow = 'hidden'
+  }
+
+  function closeLightbox() {
+    const lb = document.getElementById('image-lightbox')
+    if (!lb || !lb.classList.contains('is-open')) return
+    lb.classList.remove('is-open')
+    lb.setAttribute('aria-hidden', 'true')
+    document.documentElement.style.overflow = ''
+  }
+
+  function step(delta: number) {
+    const state = getState()
+    if (state.items.length < 2) return
+    state.index = (state.index + delta + state.items.length) % state.items.length
+    render()
+  }
+
+  function initLightbox() {
+    closeLightbox()
+    const lb = document.getElementById('image-lightbox')
+    if (!lb || lb.dataset.bound === 'true') return
+    lb.dataset.bound = 'true'
+
+    lb.addEventListener('click', (e) => {
+      // 只有点到衬底本身（非图片/按钮区域）才关闭
+      if (e.target === lb) closeLightbox()
+    })
+    lb.querySelector('.lb-close')?.addEventListener('click', closeLightbox)
+    lb.querySelector('.lb-prev')?.addEventListener('click', () => step(-1))
+    lb.querySelector('.lb-next')?.addEventListener('click', () => step(1))
+  }
+
+  const w = window as any
+  if (!w.__lightboxGlobalBound) {
+    w.__lightboxGlobalBound = true
+
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement
+      if (target.tagName !== 'IMG') return
+      const img = target as HTMLImageElement
+      if (!img.closest('#markdown-wrapper')) return
+      if (img.closest('a')) return
+      if (img.closest('#image-lightbox')) return
+      openLightbox(img.currentSrc || img.src)
+    })
+
+    document.addEventListener('keydown', (e) => {
+      const lb = document.getElementById('image-lightbox')
+      if (!lb || !lb.classList.contains('is-open')) return
+      if (e.key === 'Escape') closeLightbox()
+      else if (e.key === 'ArrowLeft') step(-1)
+      else if (e.key === 'ArrowRight') step(1)
+    })
+  }
+
+  document.addEventListener('astro:page-load', initLightbox)
+  initLightbox()
+</script>

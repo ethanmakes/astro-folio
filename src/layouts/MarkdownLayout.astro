@@ -5,6 +5,7 @@ import Footer from '@/components/footer/Footer.astro'
 import Header from '@/components/header/Header.astro'
 import ReadingProgressBar from '@/components/post/ReadingProgressBar.astro'
 import CodeCopyButton from '@/components/post/CodeCopyButton.astro'
+import ImageLightbox from '@/components/post/ImageLightbox.astro'
 import 'katex/dist/katex.min.css'
 
 interface Props {
@@ -22,6 +23,7 @@ const { title, description, image, mdTitle, mdDescription } = Astro.props
   <Header title={mdTitle} description={mdDescription} />
   <ReadingProgressBar />
   <CodeCopyButton />
+  <ImageLightbox />
   <main class="relative z-1 pt-16 lg:pt-20 min-h-main bg-primary">
     <HeadGradient />
     <div class="page-transition-fade">
