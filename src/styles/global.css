@@ -2,7 +2,6 @@
 @import './iconfont.css';
 @import './shiki.css';
 @import './markdown.css';
-@import './signature.css';
 
 /* 暗色模式沿用原版：[data-theme="dark"] 属性选择器（原 tailwind.config darkMode 配置） */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
