@@ -1,5 +1,5 @@
 ---
-// 替代原 React 版 SocialList：stagger 上浮淡入改 CSS animation（按序号 animation-delay 复刻）。
+// 刊头内的社交链接：安静的图标行，无色块背景，hover 时着 accent 色。
 import clsx from 'clsx'
 import { hero } from '@/config.json'
 
@@ -10,40 +10,21 @@ interface Props {
 const { class: className } = Astro.props
 ---
 
-<ul class={clsx('flex gap-4 flex-wrap items-center justify-center lg:justify-start', className)}>
+<ul class={clsx('flex flex-wrap items-center gap-5', className)}>
   {
-    hero.socials.map((social, i) => (
-      <li class="social-item" style={`animation-delay: ${i * 0.1}s`}>
+    hero.socials.map((social) => (
+      <li>
         <a
-          class="relative size-9 text-white text-xl flex justify-center items-center group"
+          class="block text-[22px] leading-none text-secondary transition-colors hover:text-accent"
           href={social.url}
           title={social.name}
           target="_blank"
           rel="noopener noreferrer"
         >
-          <span
-            class="absolute inset-0 -z-1 rounded-full group-hover:scale-105 transition"
-            style={{ backgroundColor: social.color }}
-          />
           <i class={clsx('iconfont', social.icon)} />
+          <span class="sr-only">{social.name}</span>
         </a>
       </li>
     ))
   }
 </ul>
-
-<style>
-  .social-item {
-    animation: social-item-in 0.5s ease-out both;
-  }
-  @keyframes social-item-in {
-    from {
-      opacity: 0;
-      transform: translateY(40px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-</style>

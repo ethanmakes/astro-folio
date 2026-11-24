@@ -1,35 +1,72 @@
 ---
-import { hero, author } from '@/config.json'
+// 首页刊头（原整屏 Hero 改版）：杂志 masthead 结构——衬线字标、简介、数据行、
+// 粗细双线、栏目行。内容全部取自 config 与文章集合，不写死。
+import { hero } from '@/config.json'
 import SocialList from './SocialList.astro'
-import Highlight from '@/components/Highlight.astro'
+import { getSortedPosts, getAllPostsWordCount, getAllCategories } from '@/utils/content'
+
+const posts = await getSortedPosts()
+const wordCount = await getAllPostsWordCount()
+const categories = await getAllCategories()
+
+const wordCountStr = wordCount.toLocaleString('en-US')
 ---
 
-<div class="lg:-mt-16 lg:h-dvh lg:min-h-[720px]">
-  <div
-    class="relative max-w-[1300px] mx-auto h-full px-4 grid lg:grid-cols-2 items-center justify-items-center"
+<section class="mx-auto max-w-[1100px] px-4 md:px-8 pt-12 md:pt-16 lg:pt-20">
+  <h1
+    class="font-serif font-bold text-primary leading-none tracking-[-0.01em] text-[clamp(2.75rem,6vw,4.25rem)]"
   >
-    <div class="mt-[120px] lg:mt-0 max-w-[590px]">
-      <h1 class="text-3xl text-center lg:text-left text-balance">
-        Hi there, I'm <Highlight class="font-bold">{hero.name}</Highlight>👋<br />{hero.bio}
-      </h1>
-      <div class="text-sm text-secondary mt-3 text-center lg:text-left">{hero.description}</div>
-      <SocialList class="mt-[60px]" />
-    </div>
-    <div class="mt-20 lg:mt-0">
-      <div
-        class="size-[200px] lg:size-[300px] rounded-full overflow-hidden border border-primary bg-zinc-100 dark:bg-zinc-800"
-      >
-        <img class="size-full" src={author.avatar} alt="Site owner avatar" loading="lazy" />
-      </div>
-    </div>
+    {hero.name}<span class="text-accent">.</span>
+  </h1>
 
-    <div class="mt-10 lg:mt-0 lg:absolute inset-x-0 bottom-0 flex flex-col items-center">
-      <p class="text-xs text-center text-balance text-secondary">
-        {hero.yiyan}
-      </p>
-      <div class="mt-7 text-xl animate-bounce">
-        <i class="iconfont icon-down"></i>
-      </div>
+  <p class="mt-5 max-w-[640px] text-[15px] md:text-base leading-[1.9] text-secondary">
+    {hero.bio}
+  </p>
+
+  <div class="mt-9 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+    <p class="flex flex-wrap items-center gap-x-3 text-[13px] tracking-wide text-secondary">
+      <span>
+        <span class="font-semibold text-primary tabular-nums">{posts.length}</span> 篇文章
+      </span>
+      <span aria-hidden="true" class="text-zinc-300 dark:text-zinc-600">/</span>
+      <span>
+        <span class="font-semibold text-primary tabular-nums">{wordCountStr}</span> 字
+      </span>
+      <span aria-hidden="true" class="text-zinc-300 dark:text-zinc-600">/</span>
+      <span>
+        <span class="font-semibold text-primary tabular-nums">{categories.length}</span> 个分类
+      </span>
+    </p>
+    <SocialList />
+  </div>
+
+  {/* 报纸刊头双线：上粗下细，同为墨色，下线略淡 */}
+  <div aria-hidden="true" class="mt-6">
+    <div class="h-[3px]" style="background-color: rgb(var(--color-text-primary))"></div>
+    <div
+      class="mt-[3px] h-px opacity-60"
+      style="background-color: rgb(var(--color-text-primary))"
+    >
     </div>
   </div>
-</div>
+
+  <nav aria-label="文章分类" class="mt-4 flex flex-wrap items-baseline gap-x-7 gap-y-2">
+    {
+      categories.map((category) => (
+        <a class="masthead-cat-link text-sm transition-colors" href={`/categories/${category.slug}`}>
+          {category.name}
+          <span class="ml-1 text-xs text-secondary tabular-nums">{category.count}</span>
+        </a>
+      ))
+    }
+  </nav>
+</section>
+
+<style>
+  .masthead-cat-link {
+    color: rgb(var(--color-text-primary) / 0.82);
+  }
+  .masthead-cat-link:hover {
+    color: rgb(var(--color-accent));
+  }
+</style>

@@ -15,8 +15,7 @@
   },
   "hero": {
     "name": "Folio",
-    "bio": "A static blog template build with Astro.",
-    "description": "Clean, Cute, Fast.",
+    "bio": "Folio 是一个干净、快速的 Astro 博客主题。以 Markdown 写文章，构建时生成静态页面，没有数据库，也没有管理后台。适合想拥有一块自己的地方、安静而长期地写字的人。",
     "socials": [
       {
         "name": "Github",
@@ -24,8 +23,7 @@
         "url": "https://github.com/lee-citizen/astro-folio",
         "color": "rgb(24, 23, 23)"
       }
-    ],
-    "yiyan": "当第一颗卫星飞向大气层外，我们便以为自己终有一日会征服宇宙。"
+    ]
   },
   "color": {
     "accent": [
