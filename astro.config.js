@@ -36,9 +36,12 @@ export default defineConfig({
   compressHTML: true,
   integrations: [sitemap()],
   markdown: {
+    // 必须关掉 Astro 内置高亮：它排在用户 rehype 插件之前执行，会吃掉 code 上的
+    // language-* 类名，rehypeCodeBlock 读不到语言只能兜底显示 text。
+    // 注意 unified() 工厂不接收 syntaxHighlight，写在里面会被静默忽略。
+    syntaxHighlight: false,
     // Astro 7 默认 Sätteri 处理器不支持自定义 remark/rehype 插件，显式切回 unified 管线
     processor: unified({
-      syntaxHighlight: false,
       smartypants: false,
       remarkPlugins: [remarkMath, remarkDirective, remarkEmbed, remarkSpoiler, remarkReadingTime],
       rehypePlugins: [
