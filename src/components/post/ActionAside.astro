@@ -1,180 +1,74 @@
 ---
-// 替代原 React 版 ActionAside：分享/赞赏改原生 <dialog>，复制链接走自写 toast。
-// 二维码：原 qrcode.react 改为构建期用 qrcode 生成静态 SVG（零客户端 JS）。
-// 【Ethan 已确认 2026-11-24】正式方案：构建期 qrcode@1.5.4 生成静态 SVG。
-import { sponsor, site} from '@/config.json'
-import { withBase } from '@/utils/url'
-import QRCode from 'qrcode'
-
-interface Props {
-title: string
-slug: string
-}
-
-const { title, slug} = Astro.props
-
-// slug 是根相对语义，先补 base 再拼站点完整地址，否则子路径会被 new URL 的绝对路径吞掉
-const url = new URL(withBase(slug), site.url).href
-const text = `嘿，我发现了一片宝藏文章「${title}」哩，快来看看吧！`
-const qrSvg = await QRCode.toString(url, { type: 'svg', width: 180, margin: 0})
+// 文章右侧栏的分享/赞赏按钮。弹窗本体在 ShareDialogs.astro（须渲染在页面顶层，
+// 否则会被右侧栏的 hidden lg:block 在移动端连子树一起隐藏），这里只负责按钮与脚本绑定。
+import { sponsor } from '@/config.json'
 ---
 
 <div
-class="absolute left-0 bottom-0 flex flex-col gap-4"
-style="transform: translateY(calc(100% + 24px))"
+  class="absolute left-0 bottom-0 flex flex-col gap-4"
+  style="transform: translateY(calc(100% + 24px))"
 >
-<button
-type="button"
-aria-label="Share this post"
-class="size-6 text-xl leading-none hover:text-accent"
-data-share-open
->
-<i class="iconfont icon-share"></i>
-</button>
-{sponsor.wechat && (
-<button
-type="button"
-aria-label="Donate to author"
-class="size-6 text-xl leading-none hover:text-accent"
-data-donate-open
->
-<i class="iconfont icon-user-heart"></i>
-</button>
-)}
+  <button
+    type="button"
+    aria-label="Share this post"
+    class="size-6 text-xl leading-none hover:text-accent"
+    data-share-open
+  >
+    <i class="iconfont icon-share"></i>
+  </button>
+  {sponsor.wechat && (
+    <button
+      type="button"
+      aria-label="Donate to author"
+      class="size-6 text-xl leading-none hover:text-accent"
+      data-donate-open
+    >
+      <i class="iconfont icon-user-heart"></i>
+    </button>
+  )}
 </div>
-
-<dialog
-id="share-dialog"
-class="bg-transparent border-none p-0 outline-none max-w-none max-h-none"
-data-url={url}
-data-text={text}
-data-via={site.title}
->
-<div class="share-panel bg-primary rounded-lg p-2 min-w-[420px] border border-primary flex flex-col">
-<h2 class="px-3 py-1 font-bold">分享此内容</h2>
-<hr class="my-2 border-primary" />
-<div class="px-3 py-2 grid grid-cols-[180px_auto] gap-3">
-<div class="size-[180px] [&>svg]:size-full" set:html={qrSvg} />
-<div class="flex flex-col gap-2">
-<div class="text-sm">分享到...</div>
-<ul class="flex flex-col gap-2">
-<li
-class="px-2 py-1 flex gap-2 cursor-pointer rounded-md hover:bg-secondary"
-role="button"
-aria-label="Share to Twitter"
-data-share-twitter
->
-<i class="iconfont text-accent icon-x"></i>
-<span>Twitter</span>
-</li>
-<li
-class="px-2 py-1 flex gap-2 cursor-pointer rounded-md hover:bg-secondary"
-role="button"
-aria-label="Share to 复制链接"
-data-share-copy
->
-<i class="iconfont text-accent icon-link"></i>
-<span>复制链接</span>
-</li>
-</ul>
-</div>
-</div>
-</div>
-</dialog>
-
-{sponsor.wechat && (
-<dialog id="donate-dialog" class="bg-transparent border-none p-0 outline-none max-w-none max-h-none">
-<div class="donate-panel">
-<h2 class="text-center mb-5">感谢您的支持，这将成为我前进的最大动力。</h2>
-<div class="flex flex-wrap gap-4 justify-center">
-<img
-class="object-cover"
-width="300"
-height="300"
-src={sponsor.wechat}
-alt="微信赞赏码"
-loading="lazy"
-decoding="async"
-/>
-</div>
-</div>
-</dialog>
-)}
-
-<style>
-#share-dialog::backdrop,
-#donate-dialog::backdrop {
-background: rgb(31 41 55 / 0.4);
-}
-#share-dialog[open].share-panel {
-animation: share-panel-in 0.25s ease-out;
-}
-@keyframes share-panel-in {
-from {
-opacity: 0;
-transform: scale(0.8);
-}
-to {
-opacity: 1;
-transform: scale(1);
-}
-}
-#donate-dialog[open].donate-panel {
-animation: donate-panel-in 0.25s ease-out;
-}
-@keyframes donate-panel-in {
-from {
-opacity: 0;
-transform: translateY(20px);
-}
-to {
-opacity: 1;
-transform: translateY(0);
-}
-}
-</style>
 
 <script>
-function initActionAside() {
-const shareDialog = document.getElementById('share-dialog') as HTMLDialogElement | null
-const donateDialog = document.getElementById('donate-dialog') as HTMLDialogElement | null
+  function initActionAside() {
+    const shareDialog = document.getElementById('share-dialog') as HTMLDialogElement | null
+    const donateDialog = document.getElementById('donate-dialog') as HTMLDialogElement | null
 
-document.querySelectorAll('[data-share-open]').forEach((btn) => {
-if ((btn as HTMLElement).dataset.bound === 'true') return
-;(btn as HTMLElement).dataset.bound = 'true'
-btn.addEventListener('click', () => shareDialog?.showModal())
-})
-document.querySelectorAll('[data-donate-open]').forEach((btn) => {
-if ((btn as HTMLElement).dataset.bound === 'true') return
-;(btn as HTMLElement).dataset.bound = 'true'
-btn.addEventListener('click', () => donateDialog?.showModal())
-})
+    document.querySelectorAll('[data-share-open]').forEach((btn) => {
+      if ((btn as HTMLElement).dataset.bound === 'true') return
+      ;(btn as HTMLElement).dataset.bound = 'true'
+      btn.addEventListener('click', () => shareDialog?.showModal())
+    })
+    document.querySelectorAll('[data-donate-open]').forEach((btn) => {
+      if ((btn as HTMLElement).dataset.bound === 'true') return
+      ;(btn as HTMLElement).dataset.bound = 'true'
+      btn.addEventListener('click', () => donateDialog?.showModal())
+    })
 
-if (shareDialog && shareDialog.dataset.bound!== 'true') {
-shareDialog.dataset.bound = 'true'
-const { url, text, via} = shareDialog.dataset
-shareDialog.addEventListener('click', (e) => {
-if (e.target === shareDialog) shareDialog.close()
-})
-shareDialog.querySelector('[data-share-twitter]')?.addEventListener('click', () => {
-window.open(
-`https://twitter.com/intent/tweet?url=${encodeURIComponent(url!)}&text=${encodeURIComponent(text!)}&via=${encodeURIComponent(via!)}`,
-)
-})
-shareDialog.querySelector('[data-share-copy]')?.addEventListener('click', () => {
-navigator.clipboard.writeText(url!)
-;window.toast?.success('已复制到剪贴板')
-})
-}
+    if (shareDialog && shareDialog.dataset.bound !== 'true') {
+      shareDialog.dataset.bound = 'true'
+      const { url, text, via } = shareDialog.dataset
+      shareDialog.addEventListener('click', (e) => {
+        if (e.target === shareDialog) shareDialog.close()
+      })
+      shareDialog.querySelector('[data-share-twitter]')?.addEventListener('click', () => {
+        window.open(
+          `https://twitter.com/intent/tweet?url=${encodeURIComponent(url!)}&text=${encodeURIComponent(text!)}&via=${encodeURIComponent(via!)}`,
+        )
+      })
+      shareDialog.querySelector('[data-share-copy]')?.addEventListener('click', () => {
+        navigator.clipboard.writeText(url!)
+        ;window.toast?.success('已复制到剪贴板')
+      })
+    }
 
-if (donateDialog && donateDialog.dataset.bound!== 'true') {
-donateDialog.dataset.bound = 'true'
-donateDialog.addEventListener('click', (e) => {
-if (e.target === donateDialog) donateDialog.close()
-})
-}
-}
+    if (donateDialog && donateDialog.dataset.bound !== 'true') {
+      donateDialog.dataset.bound = 'true'
+      donateDialog.addEventListener('click', (e) => {
+        if (e.target === donateDialog) donateDialog.close()
+      })
+    }
+  }
 
-document.addEventListener('astro:page-load', initActionAside)
-initActionAside()
+  document.addEventListener('astro:page-load', initActionAside)
+  initActionAside()
 </script>

@@ -15,6 +15,7 @@ import PostNav from '@/components/post/PostNav.astro'
 import PostSeries from '@/components/post/PostSeries.astro'
 import { Comments } from '@/components/comment'
 import ActionAside from '@/components/post/ActionAside.astro'
+import ShareDialogs from '@/components/post/ShareDialogs.astro'
 import PostCopyright from '@/components/post/PostCopyright.astro'
 
 export const getStaticPaths = (async () => {
@@ -122,9 +123,10 @@ const lastMod = current.data.lastMod || current.data.date
           <hr class="my-2 border-primary max-w-[100px]" />
           <ReadingProgress />
         </SectionBlock>
-        <ActionAside title={current.data.title} slug={mdSlug} />
+        <ActionAside />
       </aside>
     </div>
+    <ShareDialogs title={current.data.title} slug={mdSlug} />
     <div data-pagefind-ignore>
       <section class="space-y-6">
         <PostCopyright title={current.data.title} slug={mdSlug} lastMod={lastMod} />

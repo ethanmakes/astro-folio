@@ -1,0 +1,124 @@
+---
+// 分享/赞赏弹窗：从 ActionAside 拆出，单独渲染在文章页顶层。
+// 原因：ActionAside 的按钮位于右侧栏（hidden lg:block）内，dialog 若也放在里面，
+// 移动端整个子树 display:none，弹窗在顶层也渲染不出来。
+// 二维码：构建期用 qrcode@1.5.4 生成静态 SVG（零客户端 JS）。
+import { sponsor, site } from '@/config.json'
+import { withBase } from '@/utils/url'
+import QRCode from 'qrcode'
+
+interface Props {
+  title: string
+  slug: string
+}
+
+const { title, slug } = Astro.props
+
+// slug 是根相对语义，先补 base 再拼站点完整地址，否则子路径会被 new URL 的绝对路径吞掉
+const url = new URL(withBase(slug), site.url).href
+const text = title
+const qrSvg = await QRCode.toString(url, { type: 'svg', width: 180, margin: 0 })
+---
+
+<dialog
+  id="share-dialog"
+  class="bg-transparent border-none p-0 outline-none max-w-none max-h-none"
+  data-url={url}
+  data-text={text}
+  data-via={site.title}
+>
+  <div class="share-panel bg-primary rounded-2xl p-2 w-[420px] max-w-[calc(100vw-2rem)] border border-primary flex flex-col">
+    <h2 class="px-3 py-1 font-bold">分享此内容</h2>
+    <hr class="my-2 border-primary" />
+    <div class="px-3 py-2 grid grid-cols-[180px_1fr] gap-3">
+      <div class="size-[180px] max-w-full [&>svg]:size-full" set:html={qrSvg} />
+      <div class="flex flex-col justify-center gap-2">
+        <div class="text-sm">分享到...</div>
+        <ul class="flex flex-col gap-2">
+          <li
+            class="px-2 py-1 flex gap-2 cursor-pointer rounded-md hover:bg-secondary"
+            role="button"
+            aria-label="Share to Twitter"
+            data-share-twitter
+          >
+            <i class="iconfont text-accent icon-x"></i>
+            <span>Twitter</span>
+          </li>
+          <li
+            class="px-2 py-1 flex gap-2 cursor-pointer rounded-md hover:bg-secondary"
+            role="button"
+            aria-label="Share to 复制链接"
+            data-share-copy
+          >
+            <i class="iconfont text-accent icon-link"></i>
+            <span>复制链接</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+{sponsor.wechat && (
+  <dialog id="donate-dialog" class="bg-transparent border-none p-0 outline-none max-w-none max-h-none">
+    <div class="donate-panel">
+      <h2 class="text-center mb-5">感谢您的支持，这将成为我前进的最大动力。</h2>
+      <div class="flex flex-wrap gap-4 justify-center">
+        <img
+          class="object-cover"
+          width="300"
+          height="300"
+          src={sponsor.wechat}
+          alt="微信赞赏码"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </div>
+  </dialog>
+)}
+
+<style>
+  /* Tailwind preflight 把 dialog 的 margin 清零，UA 自带的居中失效，面板会粘左上角；
+     显式 fixed + inset 0 + margin auto 恢复居中（与 SearchPanel 的处理一致）。 */
+  #share-dialog,
+  #donate-dialog {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: fit-content;
+    height: fit-content;
+    max-width: calc(100vw - 2rem);
+  }
+  #share-dialog::backdrop,
+  #donate-dialog::backdrop {
+    background: rgb(31 41 55 / 0.4);
+    backdrop-filter: blur(4px);
+  }
+  #share-dialog[open] .share-panel {
+    animation: share-panel-in 0.25s ease-out;
+  }
+  @keyframes share-panel-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  #donate-dialog[open] .donate-panel {
+    animation: donate-panel-in 0.25s ease-out;
+  }
+  @keyframes donate-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
