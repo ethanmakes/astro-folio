@@ -2,11 +2,12 @@
   "site": {
     "url": "https://ethanmakes.github.io/astro-folio",
     "title": "Folio",
-    "description": "这是一个使用 Astro 开发的博客主题。",
+    "description": "一个干净、快速的 Astro 博客主题。以 Markdown 写文章，构建时生成静态页面，没有数据库，也没有管理后台。",
     "keywords": "Folio,blog,Astro,theme,博客主题",
     "lang": "zh-CN",
     "favicon": "/logo.svg",
-    "appleTouchIcon": "/apple-touch-icon.png"
+    "appleTouchIcon": "/apple-touch-icon.png",
+    "ogImage": "/og-image.png"
   },
   "author": {
     "name": "Folio",

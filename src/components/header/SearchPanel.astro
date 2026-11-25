@@ -308,11 +308,11 @@
     return `${BASE_PREFIX}${url}`
   }
 
-  let pagefind: any = null
+  let pagefind: Pagefind | null = null
   async function loadPagefind() {
     if (!pagefind) {
       const url = `${BASE_PREFIX}/pagefind/pagefind.js`
-      pagefind = await import(/* @vite-ignore */ url)
+      pagefind = (await import(/* @vite-ignore */ url)) as unknown as Pagefind
     }
   }
 
@@ -336,7 +336,7 @@
     const isDev = dialog.dataset.dev === 'true'
 
     let keyword = ''
-    let results: any[] = []
+    let results: PagefindResultData[] = []
     let isLoading = false
     let activeIndex = -1
 
@@ -411,7 +411,7 @@
       await loadPagefind()
       if (pagefind) {
         const res = await pagefind.search(value)
-        results = await Promise.all(res.results.map((r: any) => r.data()))
+        results = await Promise.all(res.results.map((r) => r.data()))
       }
       isLoading = false
       render()

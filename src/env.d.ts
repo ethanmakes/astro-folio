@@ -26,6 +26,23 @@ interface FolioToast {
 }
 
 declare global {
+  /** pagefind 单条搜索结果的数据（SearchPanel 渲染实际用到的字段） */
+  interface PagefindResultData {
+    url: string
+    excerpt: string
+    meta: { title: string }
+  }
+
+  /** pagefind 单条结果句柄，data() 异步取出完整数据 */
+  interface PagefindSearchResult {
+    data: () => Promise<PagefindResultData>
+  }
+
+  /** pagefind 运行时模块（构建后生成于 /pagefind/pagefind.js，官方无类型声明） */
+  interface Pagefind {
+    search: (term: string) => Promise<{ results: PagefindSearchResult[] }>
+  }
+
   interface Window {
     /** SearchPanel 注册，Header 的搜索按钮调用 */
     __openSearch?: () => void

@@ -1,5 +1,6 @@
 ---
-// 替代原 React 版 ReadingProgress：按 #markdown-wrapper 高度计算阅读进度（lodash floor 改 Math.floor）。
+// 替代原 React 版 ReadingProgress：百分比与顶栏进度线共用
+// src/scripts/reading-progress.ts 的统一口径，此处只负责取整显示。
 ---
 
 <div>
@@ -7,25 +8,15 @@
 </div>
 
 <script>
-  import { getScrollState, onScrollStateChange, startScrollTracking } from '@/scripts/scroll'
+  import { onScrollStateChange, startScrollTracking } from '@/scripts/scroll'
+  import { getReadingProgress } from '@/scripts/reading-progress'
 
   function updateProgress() {
     const el = document.getElementById('reading-progress')
     if (!el) return
-    const article = document.querySelector('#markdown-wrapper') as HTMLElement | null
-    if (!article) return
+    if (!document.querySelector('#markdown-wrapper')) return
 
-    const { offsetHeight, offsetTop } = article
-    const fullHeight = offsetHeight + offsetTop - window.innerHeight
-    const y = getScrollState().y
-
-    let percent: number
-    if (y > fullHeight) {
-      percent = 100
-    } else {
-      percent = Math.floor((y / fullHeight) * 100)
-    }
-    el.textContent = String(percent)
+    el.textContent = String(Math.floor(getReadingProgress() * 100))
   }
 
   function initProgress() {
