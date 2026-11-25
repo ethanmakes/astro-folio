@@ -39,6 +39,7 @@ Folio is a thorough rebuild of astro-gyoza: the stack moves to Astro 7 + Tailwin
 - ✅ Search panel: a centered dialog that follows the site palette and dark mode, with ↑↓ selection, Enter to open, and a Ctrl/⌘+K shortcut (pagefind)
 - ✅ Single-point deploy URL: set `site.url` in `src/config.json` only — origin and subpath are split automatically at build time
 - ✅ Pure Astro + vanilla JS, no React runtime; full TypeScript types (astro check passes with zero errors)
+- ✅ Lighthouse scores: Accessibility 100 · Best Practices 100 · SEO 100 ([run PageSpeed Insights](https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fethanmakes.github.io%2Fastro-folio%2F))
 
 ## 🔧 Tech Stack
 

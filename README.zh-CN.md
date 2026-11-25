@@ -39,6 +39,7 @@ astro-folio 是在 astro-gyoza 基础上的一次全面重构：技术栈升级�
 - ✅ 搜索面板：居中弹窗，跟随站点配色与夜间模式，支持 ↑↓ 选择、Enter 打开、Ctrl/⌘+K 唤起
 - ✅ 部署地址单点配置：只改 `src/config.json` 的 `site.url`，域名与子路径由构建自动拆分
 - ✅ 纯 Astro + 原生 JS，无 React 运行时；TypeScript 类型完备（astro check 零错误）
+- ✅ Lighthouse 跑分：无障碍 100 · 最佳实践 100 · SEO 100（[在线 PageSpeed 检测](https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fethanmakes.github.io%2Fastro-folio%2F)）
 
 ## 🔧 Tech Stack
 
