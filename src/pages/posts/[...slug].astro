@@ -16,6 +16,7 @@ import PostSeries from '@/components/post/PostSeries.astro'
 import { Comments } from '@/components/comment'
 import ActionAside from '@/components/post/ActionAside.astro'
 import ShareDialogs from '@/components/post/ShareDialogs.astro'
+import { sponsor } from '@/config.json'
 import PostCopyright from '@/components/post/PostCopyright.astro'
 
 export const getStaticPaths = (async () => {
@@ -129,6 +130,26 @@ const lastMod = current.data.lastMod || current.data.date
     <ShareDialogs title={current.data.title} slug={mdSlug} />
     <div data-pagefind-ignore>
       <section class="space-y-6">
+        <div class="flex justify-end lg:hidden">
+          <button
+            type="button"
+            aria-label="Share this post"
+            class="size-10 grid place-items-center text-xl hover:text-accent"
+            data-share-open
+          >
+            <i class="iconfont icon-share"></i>
+          </button>
+          {sponsor.wechat && (
+            <button
+              type="button"
+              aria-label="Donate to author"
+              class="size-10 grid place-items-center text-xl hover:text-accent"
+              data-donate-open
+            >
+              <i class="iconfont icon-user-heart"></i>
+            </button>
+          )}
+        </div>
         <PostCopyright title={current.data.title} slug={mdSlug} lastMod={lastMod} />
         {
           seriesPosts.length >= 2 && (
