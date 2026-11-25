@@ -1,2 +1,48 @@
 /// <reference path="../.astro/types.d.ts" />
 /// <reference types="astro/client" />
+
+// 跨组件的 window 全局总线。各组件脚本会随 View Transitions 重复执行，
+// 状态与「只绑定一次」守卫必须挂在 window 上跨闭包存活；在此集中声明，
+// 让键名拼错在编译期就暴露，而不是运行时静默失效。
+
+/** Header 顶栏二态的迟滞状态（见 Header.astro 的 getHeaderMetaState） */
+interface FolioHeaderMetaState {
+  meta: boolean
+  minY: number
+  maxY: number
+}
+
+/** ImageLightbox 的当前图片列表与索引（见 ImageLightbox.astro 的 getState） */
+interface FolioLightboxState {
+  items: { src: string; alt: string }[]
+  index: number
+}
+
+/** Layout 注入的轻量 toast，形状与 src/scripts/toast.ts 的导出一致 */
+interface FolioToast {
+  success: (message: string) => void
+  info: (message: string) => void
+  error: (message: string) => void
+}
+
+declare global {
+  interface Window {
+    /** SearchPanel 注册，Header 的搜索按钮调用 */
+    __openSearch?: () => void
+    toast?: FolioToast
+    __headerMetaState?: FolioHeaderMetaState
+    __lightboxState?: FolioLightboxState
+    /* 以下为各组件「全局监听只绑定一次」的守卫标志 */
+    __searchHotkeyBound?: boolean
+    __headerScrollBound?: boolean
+    __themeMediaBound?: boolean
+    __tocScrollBound?: boolean
+    __readingProgressBound?: boolean
+    __readingProgressBarBound?: boolean
+    __lightboxGlobalBound?: boolean
+    __backToTopBound?: boolean
+    __postCardHoverBound?: boolean
+  }
+}
+
+export {}

@@ -65,7 +65,7 @@
     requestPaint()
   }
 
-  const w = window as any
+  const w = window
   if (!w.__readingProgressBarBound) {
     w.__readingProgressBarBound = true
     window.addEventListener('scroll', requestPaint, { passive: true })

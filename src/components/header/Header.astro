@@ -239,9 +239,9 @@ const menuBgClasses =
   }
 
   function getHeaderMetaState(): HeaderMetaState {
-    const w = window as any
+    const w = window
     if (!w.__headerMetaState) w.__headerMetaState = { meta: false, minY: 0, maxY: 0 }
-    return w.__headerMetaState as HeaderMetaState
+    return w.__headerMetaState
   }
 
   function resetHeaderMetaState(y: number) {
@@ -377,11 +377,11 @@ const menuBgClasses =
     const searchBtn = document.getElementById('search-open')
     if (searchBtn && searchBtn.dataset.bound !== 'true') {
       searchBtn.dataset.bound = 'true'
-      searchBtn.addEventListener('click', () => (window as any).__openSearch?.())
+      searchBtn.addEventListener('click', () => window.__openSearch?.())
     }
   }
 
-  const w = window as any
+  const w = window
   if (!w.__headerScrollBound) {
     w.__headerScrollBound = true
     onScrollStateChange(applyScrollState)

@@ -163,7 +163,7 @@ window.open(
 })
 shareDialog.querySelector('[data-share-copy]')?.addEventListener('click', () => {
 navigator.clipboard.writeText(url!)
-;(window as any).toast?.success('已复制到剪贴板')
+;window.toast?.success('已复制到剪贴板')
 })
 }
 

@@ -7,6 +7,10 @@ A clean, fast blog theme for Astro — rebuilt from [astro-gyoza](https://github
 
 astro-folio 是在 astro-gyoza 基础上的一次现代化重构：外观与功能保持不变，技术栈全面升级。
 
+| 浅色 | 深色 |
+| :--: | :--: |
+| ![首页 · 浅色](docs/screenshots/home-light.png) | ![首页 · 深色](docs/screenshots/home-dark.png) |
+
 ## 🔄 与原版的区别
 
 - **Astro 4 → 7**，内容集合迁移到 Content Layer API（glob loader）
@@ -29,6 +33,13 @@ astro-folio 是在 astro-gyoza 基础上的一次现代化重构：外观与功�
 - ✅ 特殊日期变灰
 - ✅ 简单干净的配色和主题
 - ✅ 支持代码高亮
+- ✅ 文章页阅读进度条（顶栏底部随滚动推进）
+- ✅ 代码块一键复制（按钮文案 copy / copied，触屏常显）
+- ✅ 文章图片灯箱（点击放大，支持左右切换与键盘导航）
+- ✅ 文章系列：frontmatter 用 `series` / `seriesOrder` 组织，文末自动生成系列目录
+- ✅ 搜索面板：居中弹窗，跟随站点配色与夜间模式，支持 ↑↓ 选择、Enter 打开、Ctrl/⌘+K 唤起
+- ✅ 部署地址单点配置：只改 `src/config.json` 的 `site.url`，域名与子路径由构建自动拆分
+- ✅ 纯 Astro + 原生 JS，无 React 运行时；TypeScript 类型完备（astro check 零错误）
 
 ## 🔧 Tech Stack
 
@@ -56,7 +67,7 @@ astro-folio 是在 astro-gyoza 基础上的一次现代化重构：外观与功�
 └── tsconfig.json
 ```
 
-网站配置保存在 `src/config.json` 文件。文章放在 `src/content/posts/`，frontmatter 字段：`title`、`date`、`lastMod`、`summary`、`cover`、`category`、`tags`、`comments`、`draft`、`sticky`。
+网站配置保存在 `src/config.json` 文件。文章放在 `src/content/posts/`，frontmatter 字段：`title`、`date`、`lastMod`、`summary`、`cover`、`category`、`tags`、`series`、`seriesOrder`、`comments`、`draft`、`sticky`。
 
 ## 🧞 Commands
 

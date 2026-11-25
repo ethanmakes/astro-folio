@@ -52,7 +52,7 @@ const lastModStr = getFormattedDateTime(lastMod)
       el.dataset.bound = 'true'
       el.addEventListener('click', () => {
         navigator.clipboard.writeText(el.dataset.copyUrl!)
-        ;(window as any).toast?.success('已复制文章链接')
+        ;window.toast?.success('已复制文章链接')
       })
     })
   }

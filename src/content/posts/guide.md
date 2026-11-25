@@ -88,4 +88,4 @@ seriesOrder: 1
 
 ## 部署
 
-构建产物是纯静态文件，可以部署到任何静态托管平台，例如 GitHub Pages、Cloudflare Pages、Vercel，或者你自己的服务器。部署前请确认 `site.url` 已改为正式域名。
+构建产物是纯静态文件，可以部署到任何静态托管平台，例如 GitHub Pages、Cloudflare Pages、Vercel，或者你自己的服务器。部署前请确认 `site.url` 已改为正式域名。换部署地址只需改这一处：`astro.config.js` 会从 `site.url` 自动拆出域名与子路径（部署到子路径时把子路径写进 `site.url` 即可），不需要再改构建配置。
