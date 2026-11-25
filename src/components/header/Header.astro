@@ -2,10 +2,10 @@
 // 替代原 React 版 Header 全家（Header/HeaderContent/HeaderMeta/AnimatedLogo/
 // BluredBackground/HeaderDrawer/hooks）：服务端渲染 + 原生脚本驱动滚动状态。
 // 行为与原版一致：
-// - 顶栏毛玻璃背景 opacity 随滚动 60→120 线性加深（保留两位小数）；lg 起改用常驻通栏背景层
-// - 桌面菜单：md 保留背景辉光胶囊（顶部 60px 内显示，滚动后背景消失）；
-//   lg 改为通栏顶栏：品牌字标居左、菜单横排（当前页 accent 色 + 加粗 + 底部实色下划线）
-// - 主题切换从页脚移入顶栏右侧（lg 显示）与移动端抽屉顶部，全站只此一处逻辑
+// - 移动端（<md）顶栏毛玻璃背景 opacity 随滚动 60→120 线性加深（保留两位小数）；
+//   md 起改用常驻通栏背景层（2026-11-25 平板与桌面统一，原 md 辉光胶囊菜单删除）
+// - 通栏顶栏（md 起）：品牌字标居左、菜单横排（当前页 accent 色 + 加粗 + 底部实色下划线）
+// - 主题切换从页脚移入顶栏右侧（md 起显示）与移动端抽屉顶部，全站只此一处逻辑
 // - 文章页顶栏二态（方向感知 + 累计 8px 迟滞防抖）：顶部与上滑时为品牌+菜单常态，
 //   下滑越过 60px 后与文章 meta 互换；旧版上滑浮动胶囊菜单已删除，全站只剩这一套导航逻辑
 // - 移动端：抽屉菜单（条目 stagger）、meta 出现时 logo 淡出
@@ -33,28 +33,25 @@ const strippedPath =
 const pathName = strippedPath === '/' ? '/' : strippedPath.replace(/\/$/, '')
 
 const menuItems = menus.map((menu) => ({ ...menu, isActive: pathName === menu.link }))
-
-const menuBgClasses =
-  'bg-gradient-to-b from-zinc-50/70 to-white/90 shadow-lg shadow-zinc-800/5 ring-1 ring-zinc-900/5 backdrop-blur-md dark:from-zinc-900/70 dark:to-zinc-800/90 dark:ring-zinc-100/10'
 ---
 
-<header class="fixed top-0 inset-x-0 h-[64px] lg:h-[80px] z-10 overflow-hidden" data-has-meta={hasMeta}>
+<header class="fixed top-0 inset-x-0 h-[64px] md:h-[80px] z-10 overflow-hidden" data-has-meta={hasMeta}>
   <div
     id="header-bg"
-    class="lg:hidden absolute inset-0 -z-1 border-b border-primary bg-white/70 dark:bg-zinc-800/70 backdrop-saturate-150 backdrop-blur-lg transform-gpu"
+    class="md:hidden absolute inset-0 -z-1 border-b border-primary bg-white/70 dark:bg-zinc-800/70 backdrop-saturate-150 backdrop-blur-lg transform-gpu"
     style="opacity: 0"
   >
   </div>
-  {/* lg 通栏顶栏的常驻背景：半透明 + 毛玻璃 + 底部 hairline 分隔线 */}
+  {/* 通栏顶栏的常驻背景（md 起）：半透明 + 毛玻璃 + 底部 hairline 分隔线 */}
   <div
-    class="hidden lg:block absolute inset-0 -z-1 border-b border-primary bg-white/70 dark:bg-zinc-800/70 backdrop-saturate-150 backdrop-blur-lg"
+    class="hidden md:block absolute inset-0 -z-1 border-b border-primary bg-white/70 dark:bg-zinc-800/70 backdrop-saturate-150 backdrop-blur-lg"
     aria-hidden="true"
   >
   </div>
   <div
-    class="max-w-[1100px] h-full md:px-4 lg:px-8 mx-auto grid grid-cols-[64px_auto_64px] lg:grid-cols-[auto_1fr_auto]"
+    class="max-w-[1100px] h-full md:px-8 mx-auto grid grid-cols-[64px_auto_64px] md:grid-cols-[auto_1fr_auto]"
   >
-    <div class="flex items-center justify-center lg:justify-start">
+    <div class="flex items-center justify-center md:justify-start">
       <button
         id="drawer-open"
         class="md:hidden size-9 rounded-full shadow-lg shadow-zinc-800/5 border border-primary bg-white/50 dark:bg-zinc-800/50 backdrop-blur"
@@ -63,15 +60,8 @@ const menuBgClasses =
       >
         <i class="iconfont icon-menu"></i>
       </button>
-      <a class="hidden md:block lg:hidden" href={withBase('/')} title="Nav to home">
-        <img
-          class="size-[40px] select-none object-cover rounded-2xl"
-          src={withBase(author.avatar)}
-          alt="Site owner avatar"
-        />
-      </a>
-      {/* lg 品牌区：logo + 放大加粗的站点字标 */}
-      <a class="hidden lg:flex items-center gap-3 shrink-0" href={withBase('/')} title="Nav to home">
+      {/* 品牌区（md 起）：logo + 放大加粗的站点字标 */}
+      <a class="hidden md:flex items-center gap-3 shrink-0" href={withBase('/')} title="Nav to home">
         <img
           class="size-[44px] select-none object-cover rounded-2xl"
           src={withBase(author.avatar)}
@@ -93,40 +83,9 @@ const menuBgClasses =
           alt="Site owner avatar"
         />
       </a>
-      <div id="header-menu-wrap" class="hidden md:block lg:h-full transition-opacity duration-300">
-        <nav
-          id="header-menu"
-          class:list={['lg:hidden relative rounded-full group pointer-events-auto duration-200', menuBgClasses]}
-        >
-          <div
-            class="header-menu-glow absolute -z-1 -inset-px rounded-full opacity-0 group-hover:opacity-100 duration-500"
-            aria-hidden="true"
-          >
-          </div>
-          <div class="text-sm px-4 flex">
-            {
-              menuItems.map((menu) => (
-                <a
-                  class:list={[
-                    'relative block px-4 py-1.5',
-                    menu.isActive ? 'text-accent' : 'hover:text-accent',
-                  ]}
-                  href={withBase(menu.link)}
-                >
-                  <div class="flex space-x-2">
-                    {menu.isActive && <i class:list={['iconfont menu-icon-in', menu.icon]} />}
-                    <span>{menu.name}</span>
-                  </div>
-                  {menu.isActive && (
-                    <div class="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
-                  )}
-                </a>
-              ))
-            }
-          </div>
-        </nav>
-        {/* lg 横排菜单：与品牌同行，当前页 accent 色 + 加粗 + 顶栏底部实色下划线 */}
-        <nav id="header-menu-lg" class="hidden lg:block h-full" aria-label="Main navigation">
+      <div id="header-menu-wrap" class="hidden md:block md:h-full transition-opacity duration-300">
+        {/* 横排菜单（md 起）：与品牌同行，当前页 accent 色 + 加粗 + 顶栏底部实色下划线 */}
+        <nav id="header-menu-lg" class="hidden md:block h-full" aria-label="Main navigation">
           <div class="flex h-full gap-10">
             {
               menuItems.map((menu) => (
@@ -160,13 +119,13 @@ const menuBgClasses =
         )
       }
     </div>
-    <div class="flex items-center justify-center lg:justify-end lg:gap-3">
-      <div class="hidden lg:block">
+    <div class="flex items-center justify-center md:justify-end md:gap-3">
+      <div class="hidden md:block">
         <ThemeSwitch />
       </div>
       <button
         id="search-open"
-        class="size-9 lg:size-11 lg:text-lg rounded-full shadow-lg shadow-zinc-800/5 border border-primary bg-white/50 dark:bg-zinc-800/50 backdrop-blur"
+        class="size-9 md:size-11 md:text-lg rounded-full shadow-lg shadow-zinc-800/5 border border-primary bg-white/50 dark:bg-zinc-800/50 backdrop-blur"
         type="button"
         aria-label="Search"
       >
@@ -217,20 +176,6 @@ const menuBgClasses =
 <script>
   import { getScrollState, onScrollStateChange, startScrollTracking } from '@/scripts/scroll'
 
-  const MENU_BG_CLASSES = [
-    'bg-gradient-to-b',
-    'from-zinc-50/70',
-    'to-white/90',
-    'shadow-lg',
-    'shadow-zinc-800/5',
-    'ring-1',
-    'ring-zinc-900/5',
-    'backdrop-blur-md',
-    'dark:from-zinc-900/70',
-    'dark:to-zinc-800/90',
-    'dark:ring-zinc-100/10',
-  ]
-
   // 顶栏二态的迟滞状态挂在 window 上：滚动回调只注册一次且 VT 软导航后脚本会
   // 重新执行，状态必须跨闭包、跨页面一致，不能用某个闭包内的局部变量。
   interface HeaderMetaState {
@@ -266,12 +211,6 @@ const menuBgClasses =
       else if (y <= 60) opacity = 0
       else opacity = Math.floor(((y - 60) / 60) * 100) / 100
       bg.style.opacity = String(opacity)
-    }
-
-    // 桌面菜单背景：滚动 <60 显示
-    const menu = document.getElementById('header-menu')
-    if (menu) {
-      MENU_BG_CLASSES.forEach((c) => menu.classList.toggle(c, y < 60))
     }
 
     // 文章页顶栏二态（方向感知 + 累计 8px 迟滞防抖）：
@@ -345,21 +284,6 @@ const menuBgClasses =
     // 新页面（含 VT 软导航）从常态起步，迟滞极值以当前滚动位置为锚
     resetHeaderMetaState(getScrollState().y)
     applyScrollState()
-
-    // 菜单径向辉光
-    document.querySelectorAll<HTMLElement>('.header-menu').forEach((nav) => {
-      if (nav.dataset.glowBound === 'true') return
-      nav.dataset.glowBound = 'true'
-      const glow = nav.querySelector<HTMLElement>('.header-menu-glow')
-      if (!glow) return
-      nav.addEventListener('mousemove', (e) => {
-        const bounds = nav.getBoundingClientRect()
-        const x = e.clientX - bounds.left
-        const y = e.clientY - bounds.top
-        const radius = Math.sqrt(bounds.width ** 2 + bounds.height ** 2) / 2.5
-        glow.style.background = `radial-gradient(${radius}px circle at ${x}px ${y}px, rgb(var(--color-accent) / 0.12) 0%, transparent 65%)`
-      })
-    })
 
     const openBtn = document.getElementById('drawer-open')
     if (openBtn && openBtn.dataset.bound !== 'true') {
